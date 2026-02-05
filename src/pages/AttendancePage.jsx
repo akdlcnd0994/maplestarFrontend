@@ -37,16 +37,25 @@ export default function AttendancePage({ setPage }) {
   }, [isLoggedIn]);
 
   useEffect(() => {
+    // 월이 변경될 때마다 해당 월의 출석 데이터와 혜택 로드
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+
+    loadBenefits(year, month);
+
     if (isLoggedIn) {
-      loadMonthAttendance(currentDate.getFullYear(), currentDate.getMonth() + 1);
+      loadMonthAttendance(year, month);
     }
   }, [currentDate, isLoggedIn]);
 
   const loadData = async () => {
     try {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+
       const [rankingRes, benefitsRes] = await Promise.all([
         api.getAttendanceRanking().catch(() => ({ data: [] })),
-        api.getAttendanceBenefits().catch(() => ({ data: null })),
+        api.getAttendanceBenefits(year, month).catch(() => ({ data: null })),
       ]);
 
       setRanking(rankingRes.data || []);
@@ -70,6 +79,17 @@ export default function AttendancePage({ setPage }) {
       console.error('Failed to load data:', e);
     }
     setLoading(false);
+  };
+
+  // 특정 년/월의 혜택 로드
+  const loadBenefits = async (year, month) => {
+    try {
+      const res = await api.getAttendanceBenefits(year, month);
+      setBenefits(res.data);
+    } catch (e) {
+      console.error('Failed to load benefits:', e);
+      setBenefits(null);
+    }
   };
 
   const loadMonthAttendance = async (year, month) => {
@@ -118,7 +138,8 @@ export default function AttendancePage({ setPage }) {
       await api.saveAttendanceBenefits(benefitForm);
       alert('혜택이 저장되었습니다.');
       setShowBenefitModal(false);
-      loadData();
+      // 저장한 년/월의 혜택 다시 로드
+      loadBenefits(benefitForm.year, benefitForm.month);
     } catch (e) {
       alert(e.message);
     }
@@ -217,7 +238,7 @@ export default function AttendancePage({ setPage }) {
               });
               setShowBenefitModal(true);
             }}>
-              이번 달 혜택 설정
+              {month + 1}월 혜택 설정
             </button>
           </div>
 

@@ -155,7 +155,7 @@ export default function GamesPage({ setPage }) {
                       </div>
                     </div>
 
-                    {getMyBest(game.id) && (
+                    {getMyBest(game.id) != null && (
                       <div className="my-record-v2">
                         <div className="record-label">내 기록</div>
                         <div className="record-value">{getMyBest(game.id)}<span>{game.unit}</span></div>
@@ -506,11 +506,12 @@ function MemoryGame({ user, onScoreUpdate }) {
     setMatched([]);
     setMoves(0);
     setGameComplete(false);
-    setStartTime(Date.now());
+    const now = Date.now();
+    setStartTime(now);
     setElapsedTime(0);
 
     timerRef.current = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - Date.now()) / 1000));
+      setElapsedTime(Math.floor((Date.now() - now) / 1000));
     }, 100);
   };
 
@@ -673,6 +674,7 @@ function TypingGame({ user, onScoreUpdate }) {
   const [wordKey, setWordKey] = useState(0);
   const inputRef = useRef(null);
   const timerRef = useRef(null);
+  const scoreRef = useRef(0);
 
   useEffect(() => {
     loadMyBest();
@@ -692,6 +694,7 @@ function TypingGame({ user, onScoreUpdate }) {
   const startGame = () => {
     setState('playing');
     setScore(0);
+    scoreRef.current = 0;
     setCorrectChars(0);
     setTimeLeft(30);
     setInput('');
@@ -722,7 +725,9 @@ function TypingGame({ user, onScoreUpdate }) {
     if (value === currentWord) {
       // 단어 맞춤 - IME 리셋을 위해 blur 후 처리
       e.target.blur();
-      setScore(s => s + 1);
+      const newScore = scoreRef.current + 1;
+      scoreRef.current = newScore;
+      setScore(newScore);
       setCorrectChars(c => c + currentWord.length);
       setInput('');
       setWordKey(k => k + 1);
@@ -737,11 +742,12 @@ function TypingGame({ user, onScoreUpdate }) {
   const endGame = async () => {
     setState('result');
     clearInterval(timerRef.current);
+    const finalScore = scoreRef.current;
 
     try {
-      const res = await api.submitGameScore('typing', score, { words: score });
+      const res = await api.submitGameScore('typing', finalScore, { words: finalScore });
       if (res.data?.isNewRecord) {
-        setBestScore(score);
+        setBestScore(finalScore);
         setRank(res.data.rank);
         onScoreUpdate?.();
       }
@@ -765,7 +771,7 @@ function TypingGame({ user, onScoreUpdate }) {
             </div>
           </>
         )}
-        {bestScore && (
+        {bestScore != null && bestScore > 0 && (
           <div className="stat-item best">
             <span className="stat-label">최고 기록</span>
             <span className="stat-value">{bestScore}개</span>
@@ -778,9 +784,8 @@ function TypingGame({ user, onScoreUpdate }) {
         <div className="typing-ready">
           <div className="typing-icon">▣</div>
           <h3>타자 게임</h3>
-          <p style={{ color: '#e07020', fontWeight: 600 }}>현재 오류 수정 중입니다.</p>
-          <p style={{ fontSize: '13px', color: '#888' }}>업데이트 후 이용 가능합니다.</p>
-          <button className="start-btn" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>점검 중</button>
+          <p>30초 동안 메이플스토리 단어를 최대한 빠르게 입력하세요!</p>
+          <button className="start-btn" onClick={startGame}>시작</button>
         </div>
       )}
 
@@ -1708,7 +1713,7 @@ function Game2048({ user, onScoreUpdate, onBack }) {
   function move(direction) {
     if (gameOver) return;
 
-    let rotations = { left: 0, up: 1, right: 2, down: 3 };
+    let rotations = { left: 0, up: 3, right: 2, down: 1 };
     let rotated = rotateGrid(grid, rotations[direction]);
     const { grid: movedGrid, moved, addedScore } = moveLeft(rotated);
     let finalGrid = rotateGrid(movedGrid, (4 - rotations[direction]) % 4);
@@ -1985,7 +1990,7 @@ function AimTrainerGame({ user, onScoreUpdate }) {
             </div>
           </>
         )}
-        {bestScore && (
+        {bestScore != null && (
           <div className="stat-item best">
             <span className="stat-label">최고</span>
             <span className="stat-value">{bestScore}개</span>
@@ -2151,7 +2156,7 @@ function ColorTestGame({ user, onScoreUpdate }) {
             </div>
           </>
         )}
-        {bestLevel && (
+        {bestLevel != null && (
           <div className="stat-item best">
             <span className="stat-label">최고</span>
             <span className="stat-value">레벨 {bestLevel}</span>
@@ -2221,6 +2226,8 @@ function SnakeGame({ user, onScoreUpdate }) {
   const directionRef = useRef(direction);
   const gameLoopRef = useRef(null);
   const gameRef = useRef(null);
+  const foodRef = useRef({ x: 15, y: 15 });
+  const ateFoodRef = useRef(false);
 
   useEffect(() => {
     const loadMyBest = async () => {
@@ -2240,6 +2247,15 @@ function SnakeGame({ user, onScoreUpdate }) {
     directionRef.current = direction;
   }, [direction]);
 
+  // 먹이를 먹었을 때 점수와 음식 상태 업데이트
+  useEffect(() => {
+    if (ateFoodRef.current) {
+      ateFoodRef.current = false;
+      setScore(s => s + 1);
+      setFood(foodRef.current);
+    }
+  }, [snake]);
+
   const spawnFood = (snakeBody) => {
     let newFood;
     do {
@@ -2253,8 +2269,10 @@ function SnakeGame({ user, onScoreUpdate }) {
 
   const startGame = () => {
     const initialSnake = [{ x: 10, y: 10 }];
+    const initialFood = spawnFood(initialSnake);
     setSnake(initialSnake);
-    setFood(spawnFood(initialSnake));
+    setFood(initialFood);
+    foodRef.current = initialFood;
     setDirection({ x: 1, y: 0 });
     directionRef.current = { x: 1, y: 0 };
     setScore(0);
@@ -2268,13 +2286,23 @@ function SnakeGame({ user, onScoreUpdate }) {
   };
 
   const moveSnake = () => {
+    // 현재 음식 위치를 캐시 (Strict Mode에서 두 번 호출되어도 같은 값 사용)
+    const currentFood = foodRef.current;
+
     setSnake(prevSnake => {
       const head = prevSnake[0];
       const dir = directionRef.current;
       const newHead = {
-        x: (head.x + dir.x + GRID_SIZE) % GRID_SIZE,
-        y: (head.y + dir.y + GRID_SIZE) % GRID_SIZE
+        x: head.x + dir.x,
+        y: head.y + dir.y
       };
+
+      // Check collision with wall
+      if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE) {
+        clearInterval(gameLoopRef.current);
+        setTimeout(() => gameOver(prevSnake.length - 1), 0);
+        return prevSnake;
+      }
 
       // Check collision with self
       if (prevSnake.some(seg => seg.x === newHead.x && seg.y === newHead.y)) {
@@ -2283,17 +2311,23 @@ function SnakeGame({ user, onScoreUpdate }) {
         return prevSnake;
       }
 
+      // Check if food eaten (캐시된 음식 위치 사용)
+      const ateFood = currentFood && newHead.x === currentFood.x && newHead.y === currentFood.y;
+
       const newSnake = [newHead, ...prevSnake];
 
-      // Check if food eaten
-      setFood(prevFood => {
-        if (newHead.x === prevFood.x && newHead.y === prevFood.y) {
-          setScore(s => s + 10);
-          return spawnFood(newSnake);
+      if (ateFood) {
+        // 새 음식 위치 계산
+        const newFood = spawnFood(newSnake);
+        // ref 업데이트는 한 번만 실행되도록 체크
+        if (foodRef.current === currentFood) {
+          foodRef.current = newFood;
+          ateFoodRef.current = true;
         }
+        // 꼬리 유지 (뱀이 늘어남) - pop() 호출 안함
+      } else {
         newSnake.pop(); // Remove tail if no food eaten
-        return prevFood;
-      });
+      }
 
       return newSnake;
     });
@@ -2427,11 +2461,11 @@ function SnakeGame({ user, onScoreUpdate }) {
 // 장애물 피하기 (Flappy style)
 // ========================================
 function FlappyGame({ user, onScoreUpdate }) {
-  const GAME_WIDTH = 400;
+  const GAME_WIDTH = 500;
   const GAME_HEIGHT = 500;
   const BIRD_SIZE = 30;
   const PIPE_WIDTH = 60;
-  const GAP_HEIGHT = 150;
+  const GAP_HEIGHT = 180;
   const GRAVITY = 0.5;
   const JUMP_FORCE = -8;
 
@@ -2485,7 +2519,7 @@ function FlappyGame({ user, onScoreUpdate }) {
       setBirdVelocity(birdVelocityRef.current);
 
       // Spawn pipes
-      if (timestamp - lastPipeTime > 2000) {
+      if (timestamp - lastPipeTime > 2500) {
         const gapY = 100 + Math.random() * (GAME_HEIGHT - GAP_HEIGHT - 200);
         pipesRef.current = [...pipesRef.current, { x: GAME_WIDTH, gapY, passed: false }];
         lastPipeTime = timestamp;
@@ -2493,7 +2527,7 @@ function FlappyGame({ user, onScoreUpdate }) {
 
       // Update pipes
       pipesRef.current = pipesRef.current
-        .map(pipe => ({ ...pipe, x: pipe.x - 3 }))
+        .map(pipe => ({ ...pipe, x: pipe.x - 2 }))
         .filter(pipe => pipe.x > -PIPE_WIDTH);
       setPipes([...pipesRef.current]);
 
@@ -2773,7 +2807,7 @@ function PatternGame({ user, onScoreUpdate }) {
             <span className="stat-value">{level}</span>
           </div>
         )}
-        {bestLevel && (
+        {bestLevel != null && (
           <div className="stat-item best">
             <span className="stat-label">최고</span>
             <span className="stat-value">레벨 {bestLevel}</span>

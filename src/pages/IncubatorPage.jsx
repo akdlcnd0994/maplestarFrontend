@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
-// 소리 재생 함수
-const playSound = (src) => {
+// 소리 재생 함수 (연타 지원)
+const playSound = (src, volume = 0.5) => {
   const audio = new Audio(src);
-  audio.volume = 0.5;
+  audio.volume = volume;
   audio.play().catch(() => {});
 };
 
@@ -79,6 +79,17 @@ const getItemIcon = (item) => {
 
 export default function IncubatorPage() {
   const { isLoggedIn } = useAuth();
+  const [volume, setVolume] = useState(() => {
+    const saved = localStorage.getItem('simulatorVolume');
+    return saved ? parseFloat(saved) : 0.3;
+  });
+
+  // 음량 변경 시 localStorage에 저장
+  const handleVolumeChange = (newVolume) => {
+    setVolume(newVolume);
+    localStorage.setItem('simulatorVolume', newVolume.toString());
+  };
+
   const [state, setState] = useState('ready'); // ready, hatching, result
   const [resultItem, setResultItem] = useState(null);
   const [resultItems, setResultItems] = useState([]); // 다중 부화 결과
@@ -147,10 +158,12 @@ export default function IncubatorPage() {
     setResultItems([]);
 
     try {
-      const res = await api.hatchIncubator(1, competitionBoost);
+      // 최소 1초 딜레이와 API 요청을 동시에 진행
+      const minDelay = new Promise(resolve => setTimeout(resolve, 1000));
+      const [res] = await Promise.all([api.hatchIncubator(1, competitionBoost), minDelay]);
       const { lastItem, legendaryFound, dailyTotal } = res.data;
 
-      playSound('/sounds/success.mp3');
+      playSound('/sounds/success.mp3', volume);
       setResultItem(lastItem);
       setDailyCount(dailyTotal);
       setState('result');
@@ -192,10 +205,12 @@ export default function IncubatorPage() {
     setCurrentSlideIndex(0);
 
     try {
-      const res = await api.hatchIncubator(count, competitionBoost);
+      // 최소 1초 딜레이와 API 요청을 동시에 진행
+      const minDelay = new Promise(resolve => setTimeout(resolve, 1000));
+      const [res] = await Promise.all([api.hatchIncubator(count, competitionBoost), minDelay]);
       const { lastItem, allItems, legendaryFound, dailyTotal } = res.data;
 
-      playSound('/sounds/success.mp3');
+      playSound('/sounds/success.mp3', volume);
       setResultItem(lastItem);
       setResultItems(allItems || [lastItem]);
       setDailyCount(dailyTotal);
@@ -260,9 +275,23 @@ export default function IncubatorPage() {
 
   return (
     <div className="incubator-page">
+      <div className="incubator-volume-box">
+        <div className="volume-control">
+          <span className="volume-icon">{volume === 0 ? '🔇' : '🔉'}</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={volume}
+            onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+          />
+          <span className="volume-value">{Math.round(volume * 100)}%</span>
+        </div>
+      </div>
       <div className="incubator-wrapper">
         <div className="incubator-header">
-          <h1>루시아의 전영벳은 절대안뜨는 부화기</h1>
+          <h1>루시아의 전용뱃은 절대안뜨는 부화기</h1>
           <p className="incubator-subtitle">본섭과 확률 동일</p>
           <div className="daily-count-area">
             <span className="daily-count">오늘 부화: {dailyCount} / {totalLimit}</span>
