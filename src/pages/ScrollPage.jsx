@@ -34,6 +34,46 @@ const playSound = (src, volume = 0.5) => {
   audio.play().catch(() => {});
 };
 
+// 혼돈의 주문서/이노센트 스탯 변화 확률 (-5 ~ +5)
+const CHAOS_SCROLL_PROBS = [
+  { value: -5, prob: 0.0494 },
+  { value: -4, prob: 0.0297 },
+  { value: -3, prob: 0.0365 },
+  { value: -2, prob: 0.0800 },
+  { value: -1, prob: 0.1370 },
+  { value: 0, prob: 0.1838 },
+  { value: 1, prob: 0.1931 },
+  { value: 2, prob: 0.1587 },
+  { value: 3, prob: 0.1021 },
+  { value: 4, prob: 0.0198 },
+  { value: 5, prob: 0.0099 },
+];
+
+// 놀라운 혼돈의 주문서 스탯 변화 확률 (0 ~ +5, 음수가 양수로 변환됨)
+const AMAZING_CHAOS_PROBS = [
+  { value: 0, prob: 0.1838 },
+  { value: 1, prob: 0.3301 },  // 19.31% + 13.70%
+  { value: 2, prob: 0.2387 },  // 15.87% + 8.00%
+  { value: 3, prob: 0.1386 },  // 10.21% + 3.65%
+  { value: 4, prob: 0.0495 },  // 1.98% + 2.97%
+  { value: 5, prob: 0.0593 },  // 0.99% + 4.94%
+];
+
+// 확률 기반 스탯 변화값 계산
+const getRandomStatChange = (isAmazing = false) => {
+  const probs = isAmazing ? AMAZING_CHAOS_PROBS : CHAOS_SCROLL_PROBS;
+  const rand = Math.random();
+  let cumulative = 0;
+
+  for (const { value, prob } of probs) {
+    cumulative += prob;
+    if (rand < cumulative) {
+      return value;
+    }
+  }
+  return probs[probs.length - 1].value;
+};
+
 export default function ScrollPage({ setPage }) {
   const { isLoggedIn, user } = useAuth();
   const [activeTab, setActiveTab] = useState('glove'); // glove, potential, white, chaos
@@ -985,15 +1025,14 @@ function ChaosScrollSimulator({ volume = 0.5 }) {
   const useInnocent = () => {
     if (inventory.innocent <= 0) return;
 
-    // 이노센트 사용 시 초기화 후 랜덤 스탯 변화
-    // 공격력/마력: ±3, 나머지 스탯: ±5
+    // 이노센트 사용 시 초기화 후 혼줌 확률 기반 스탯 변화
     const changes = {
-      atk: Math.floor(Math.random() * 7) - 3,   // -3 ~ +3
-      matk: Math.floor(Math.random() * 7) - 3,  // -3 ~ +3
-      str: Math.floor(Math.random() * 11) - 5,  // -5 ~ +5
-      dex: Math.floor(Math.random() * 11) - 5,  // -5 ~ +5
-      int: Math.floor(Math.random() * 11) - 5,  // -5 ~ +5
-      luk: Math.floor(Math.random() * 11) - 5,  // -5 ~ +5
+      atk: getRandomStatChange(false),
+      matk: getRandomStatChange(false),
+      str: getRandomStatChange(false),
+      dex: getRandomStatChange(false),
+      int: getRandomStatChange(false),
+      luk: getRandomStatChange(false),
     };
 
     const newStats = {
@@ -1042,7 +1081,7 @@ function ChaosScrollSimulator({ volume = 0.5 }) {
       setSuccessCount(prev => prev + 1);
       setRemainingSlots(prev => prev - 1);
 
-      // 스탯 변화 (-5 ~ +5 또는 놀줌은 0 ~ +5)
+      // 스탯 변화 (혼줌/놀혼 확률 기반)
       // 단, 스탯이 0인 경우 변화 없음 (0으로 고정)
       const statKeys = ['atk', 'matk', 'str', 'dex', 'int', 'luk'];
 
@@ -1051,9 +1090,7 @@ function ChaosScrollSimulator({ volume = 0.5 }) {
         statKeys.forEach(key => {
           // 스탯이 이미 0이면 변화 없음
           if (prev[key] === 0) return;
-          const min = isAmazing ? 0 : -5;
-          const max = 5;
-          const change = Math.floor(Math.random() * (max - min + 1)) + min;
+          const change = getRandomStatChange(isAmazing);
           newStats[key] = Math.max(0, prev[key] + change);
         });
         return newStats;
@@ -1132,6 +1169,10 @@ function ChaosScrollSimulator({ volume = 0.5 }) {
     }
   };
 
+  // 드래그 상태 관리
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [isDragOverItem, setIsDragOverItem] = useState(false);
+
   // 인벤토리 아이템 정의
   const inventoryItems = [
     { key: 'innocent', name: '이노센트 100%', img: '/scroll/innocent.png', action: useInnocent },
@@ -1141,6 +1182,51 @@ function ChaosScrollSimulator({ volume = 0.5 }) {
     { key: 'white10', name: '백의 주문서 10%', img: '/scroll/white-scroll.png', action: () => useWhite(10) },
     { key: 'white20', name: '백의 주문서 20%', img: '/scroll/white-scroll.png', action: () => useWhite(20) },
   ];
+
+  // 드래그 앤 드롭 핸들러
+  const handleDragStart = (e, item) => {
+    setDraggedItem(item.key);
+    e.dataTransfer.setData('scrollKey', item.key);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setIsDragOverItem(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    setIsDragOverItem(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    // 자식 요소로 이동할 때는 무시
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setIsDragOverItem(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOverItem(false);
+    const scrollKey = e.dataTransfer.getData('scrollKey');
+    const item = inventoryItems.find(i => i.key === scrollKey);
+    if (item) {
+      const count = inventory[item.key] || 0;
+      const isWhiteScroll = item.key.startsWith('white');
+      const isWhiteUnavailable = isWhiteScroll && remainingSlots >= upgradeCount;
+      if (count > 0 && !isWhiteUnavailable) {
+        item.action();
+      }
+    }
+    setDraggedItem(null);
+  };
 
   return (
     <div className="chaos-simulator">
@@ -1164,7 +1250,13 @@ function ChaosScrollSimulator({ volume = 0.5 }) {
           </div>
 
           {/* 아이템 정보 - 메이플 스타일 윈도우 */}
-          <div className="maple-item-window">
+          <div
+            className={`maple-item-window ${isDragOverItem ? 'drag-over' : ''}`}
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <div className="item-window-header">
               <span className="item-window-title">혼돈의 장갑</span>
             </div>
@@ -1240,15 +1332,21 @@ function ChaosScrollSimulator({ volume = 0.5 }) {
                 const count = inventory[item.key] || 0;
                 const isWhiteScroll = item.key.startsWith('white');
                 const isWhiteUnavailable = isWhiteScroll && remainingSlots >= upgradeCount;
+                const canDrag = count > 0 && !isWhiteUnavailable;
+                const isDragging = draggedItem === item.key;
                 return (
                   <div
                     key={item.key}
-                    className={`inventory-item ${isTopRow ? 'top-row' : ''} ${count === 0 ? 'disabled' : ''} ${isWhiteUnavailable ? 'unavailable' : ''}`}
+                    className={`inventory-item ${isTopRow ? 'top-row' : ''} ${count === 0 ? 'disabled' : ''} ${isWhiteUnavailable ? 'unavailable' : ''} ${isDragging ? 'dragging' : ''}`}
                     style={{
                       left: `${8 + col * 44}px`,
-                      top: `${row * 43}px`
+                      top: `${row * 43}px`,
+                      cursor: canDrag ? 'grab' : 'not-allowed'
                     }}
-                    onClick={() => count > 0 && !isWhiteUnavailable && item.action()}
+                    draggable={canDrag}
+                    onDragStart={(e) => canDrag && handleDragStart(e, item)}
+                    onDragEnd={handleDragEnd}
+                    onClick={() => canDrag && item.action()}
                   >
                     <div className="item-icon">
                       <img src={item.img} alt={item.name} className={`drag-scroll-img ${item.key === 'amazingChaos' ? 'amazing-chaos-filter' : ''}`} />
@@ -1397,21 +1495,20 @@ function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
     if (!inventory[invKey] || inventory[invKey] <= 0) return;
     if (remainingSlots <= 0 && scrollType !== 'innocent' && !scrollType.startsWith('white')) return;
 
-    // 이노센트 스크롤 - ChaosScrollSimulator와 동일한 방식
+    // 이노센트 스크롤 - 혼줌 확률 기반 스탯 변화
     if (scrollType === 'innocent') {
       try {
         await api.useScroll(scrollType, 1);
         setInventory(prev => ({ ...prev, [invKey]: (prev[invKey] || 0) - 1 }));
 
-        // 이노센트 사용 시 초기화 후 랜덤 스탯 변화
-        // 공격력/마력: ±3, 나머지 스탯: ±5
+        // 이노센트 사용 시 초기화 후 혼줌 확률 기반 스탯 변화
         const changes = {
-          atk: Math.floor(Math.random() * 7) - 3,   // -3 ~ +3
-          matk: Math.floor(Math.random() * 7) - 3,  // -3 ~ +3
-          str: Math.floor(Math.random() * 11) - 5,  // -5 ~ +5
-          dex: Math.floor(Math.random() * 11) - 5,  // -5 ~ +5
-          int: Math.floor(Math.random() * 11) - 5,  // -5 ~ +5
-          luk: Math.floor(Math.random() * 11) - 5,  // -5 ~ +5
+          atk: getRandomStatChange(false),
+          matk: getRandomStatChange(false),
+          str: getRandomStatChange(false),
+          dex: getRandomStatChange(false),
+          int: getRandomStatChange(false),
+          luk: getRandomStatChange(false),
         };
 
         const newStats = {
@@ -1455,7 +1552,7 @@ function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
       return;
     }
 
-    // 혼돈의 주문서 - ChaosScrollSimulator와 동일한 방식
+    // 혼돈의 주문서 - 혼줌 확률 기반 스탯 변화
     if (scrollType === 'chaos60') {
       const success = Math.random() * 100 < 60; // 60% 성공률
       try {
@@ -1466,8 +1563,7 @@ function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
           setSuccessCount(prev => prev + 1);
           setRemainingSlots(prev => prev - 1);
 
-          // 스탯 변화 (-5 ~ +5)
-          // 스탯 변화 (-5 ~ +5)
+          // 스탯 변화 (혼줌 확률 기반)
           // 단, 스탯이 0인 경우 변화 없음 (0으로 고정)
           const statKeys = ['atk', 'matk', 'str', 'dex', 'int', 'luk'];
 
@@ -1476,7 +1572,7 @@ function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
             statKeys.forEach(key => {
               // 스탯이 이미 0이면 변화 없음
               if (prev[key] === 0) return;
-              const change = Math.floor(Math.random() * 11) - 5; // -5 ~ +5
+              const change = getRandomStatChange(false);
               newStats[key] = Math.max(0, prev[key] + change);
             });
             return newStats;
@@ -1556,6 +1652,10 @@ function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
     }
   };
 
+  // 드래그 상태 관리
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [isDragOverItem, setIsDragOverItem] = useState(false);
+
   // 인벤토리 아이템 정의 (백엔드 키와 일치해야 함)
   const inventoryItems = [
     { key: 'innocent', name: '이노센트', img: '/scroll/innocent.png', rate: 100, stat: 0 },
@@ -1567,6 +1667,48 @@ function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
     { key: 'white10', name: '백줌10%', img: '/scroll/white-scroll.png', rate: 10, stat: 0 },
     { key: 'white20', name: '백줌20%', img: '/scroll/white-scroll.png', rate: 20, stat: 0 },
   ];
+
+  // 드래그 앤 드롭 핸들러
+  const handleDragStart = (e, item) => {
+    setDraggedItem(item.key);
+    e.dataTransfer.setData('scrollKey', item.key);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setIsDragOverItem(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    setIsDragOverItem(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setIsDragOverItem(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOverItem(false);
+    const scrollKey = e.dataTransfer.getData('scrollKey');
+    const item = inventoryItems.find(i => i.key === scrollKey);
+    if (item) {
+      const count = inventory[item.key] || 0;
+      if (count > 0) {
+        useScroll(item.key, item.rate, item.stat);
+      }
+    }
+    setDraggedItem(null);
+  };
 
   return (
     <div className="page-content scroll-page competition-mode">
@@ -1597,7 +1739,13 @@ function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
               <span className="mode-info">5회 고정 · 부화기 주문서만 사용 · 공격력 랭킹</span>
             </div>
 
-            <div className="maple-item-window">
+            <div
+              className={`maple-item-window ${isDragOverItem ? 'drag-over' : ''}`}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <div className="item-window-header">
                 <span className="item-window-title">경쟁용 장갑</span>
               </div>
@@ -1672,15 +1820,21 @@ function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
                     const col = index % 4;
                     const isTopRow = row === 0;
                     const count = inventory[item.key] || 0;
+                    const canDrag = count > 0;
+                    const isDragging = draggedItem === item.key;
                     return (
                       <div
                         key={item.key}
-                        className={`inventory-item ${isTopRow ? 'top-row' : ''} ${count === 0 ? 'disabled' : ''}`}
+                        className={`inventory-item ${isTopRow ? 'top-row' : ''} ${count === 0 ? 'disabled' : ''} ${isDragging ? 'dragging' : ''}`}
                         style={{
                           left: `${8 + col * 44}px`,
-                          top: `${row * 43}px`
+                          top: `${row * 43}px`,
+                          cursor: canDrag ? 'grab' : 'not-allowed'
                         }}
-                        onClick={() => count > 0 && useScroll(item.key, item.rate, item.stat)}
+                        draggable={canDrag}
+                        onDragStart={(e) => canDrag && handleDragStart(e, item)}
+                        onDragEnd={handleDragEnd}
+                        onClick={() => canDrag && useScroll(item.key, item.rate, item.stat)}
                       >
                         <div className="item-icon">
                           <img src={item.img} alt={item.name} className="drag-scroll-img" />
