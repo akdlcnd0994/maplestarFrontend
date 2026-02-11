@@ -204,21 +204,35 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
                     <div className={`online-indicator ${m.is_online ? 'on' : ''}`}></div>
                   </div>
                   <div className="member-main">
-                    <div className="member-name-row">
-                      <span className="member-name">{m.character_name}</span>
-                      <span className={`member-role role-${m.role || 'member'}`}>
-                        {roleInfo.label}
-                      </span>
+                    <div className="member-info-col">
+                      <div className="member-name-row">
+                        <span className="member-name">{m.character_name}</span>
+                        <span className={`member-role role-${m.role || 'member'}`}>
+                          {roleInfo.label}
+                        </span>
+                      </div>
+                      {m.alliance_name && (
+                        <span className={`member-guild ${m.is_main_guild ? 'main' : 'alliance'}`}>
+                          {m.alliance_emblem} {m.alliance_name}
+                        </span>
+                      )}
+                      {m.alt_characters?.length > 0 && (
+                        <div className="member-alts">
+                          {m.alt_characters.slice(0, 3).map((alt, idx) => (
+                            <span key={idx} className="alt-tag">
+                              {alt.username} <span className="alt-detail">Lv.{alt.userlevel} {alt.userjob}</span>
+                            </span>
+                          ))}
+                          {m.alt_characters.length > 3 && (
+                            <span className="alt-tag more">+{m.alt_characters.length - 3}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {m.alliance_name && (
-                      <span className={`member-guild ${m.is_main_guild ? 'main' : 'alliance'}`}>
-                        {m.alliance_emblem} {m.alliance_name}
-                      </span>
-                    )}
                   </div>
                   <div className="member-sub">
-                    <span className="member-job">{m.job || '-'}</span>
-                    <span className="member-level">Lv.{m.level || 0}</span>
+                    <span className="member-job">{m.ranking_job || m.job || '-'}</span>
+                    <span className="member-level">Lv.{m.ranking_level || m.level || 0}</span>
                   </div>
                 </div>
               );
@@ -264,12 +278,18 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
               <div className="member-detail-stats">
                 <div className="detail-stat">
                   <span className="stat-label">직업</span>
-                  <span className="stat-value">{showDetail.job || '-'}</span>
+                  <span className="stat-value">{showDetail.ranking_job || showDetail.job || '-'}</span>
                 </div>
                 <div className="detail-stat">
                   <span className="stat-label">레벨</span>
-                  <span className="stat-value">Lv.{showDetail.level || 0}</span>
+                  <span className="stat-value">Lv.{showDetail.ranking_level || showDetail.level || 0}</span>
                 </div>
+                {showDetail.ranking_rank && (
+                  <div className="detail-stat">
+                    <span className="stat-label">랭킹</span>
+                    <span className="stat-value">{showDetail.ranking_rank}위</span>
+                  </div>
+                )}
                 {showDetail.discord && (
                   <div className="detail-stat full">
                     <span className="stat-label">Discord</span>
@@ -281,6 +301,20 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
                   <span className="stat-value">{formatDate(showDetail.created_at)}</span>
                 </div>
               </div>
+
+              {showDetail.alt_characters?.length > 0 && (
+                <div className="member-detail-alts">
+                  <span className="alts-section-label">같은 계정 캐릭터</span>
+                  <div className="alts-list">
+                    {showDetail.alt_characters.map((alt, idx) => (
+                      <div key={idx} className="alt-item">
+                        <span className="alt-item-name">{alt.username}</span>
+                        <span className="alt-item-info">{alt.userjob} Lv.{alt.userlevel}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* 길마만 역할 변경 가능 (자기 자신 제외) */}
               {isMaster && showDetail.role !== 'master' && showDetail.id !== user?.id && (
