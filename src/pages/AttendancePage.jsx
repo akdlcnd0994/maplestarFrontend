@@ -68,12 +68,11 @@ export default function AttendancePage({ setPage }) {
           api.getAttendanceStats(),
         ]);
 
-        setAttendance(attendanceRes.data?.records || []);
+        setAttendance(attendanceRes.data || []);
         setStats(statsRes.data);
 
-        // 서버 기준 오늘 날짜 및 출석 여부 사용
-        const sToday = statsRes.data?.server_today || attendanceRes.data?.server_today;
-        if (sToday) setServerToday(sToday);
+        // 서버 기준 오늘 날짜 및 출석 여부 사용 (stats에서만 제공)
+        if (statsRes.data?.server_today) setServerToday(statsRes.data.server_today);
         setTodayChecked(!!statsRes.data?.checked_today);
       }
     } catch (e) {
@@ -97,8 +96,7 @@ export default function AttendancePage({ setPage }) {
     if (!isLoggedIn) return;
     try {
       const res = await api.getAttendanceByMonth(year, month);
-      setAttendance(res.data?.records || []);
-      if (res.data?.server_today) setServerToday(res.data.server_today);
+      setAttendance(res.data || []);
     } catch (e) {
       console.error('Failed to load month attendance:', e);
     }
@@ -154,14 +152,13 @@ export default function AttendancePage({ setPage }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = new Date(year, month, 1).getDay();
 
-  // 서버 기준 오늘 날짜 파싱 (KST 오전 5시 기준)
-  const serverTodayParts = serverToday ? serverToday.split('-').map(Number) : null;
-  const serverTodayYear = serverTodayParts?.[0];
-  const serverTodayMonth = serverTodayParts?.[1]; // 1-based
-  const serverTodayDay = serverTodayParts?.[2];
-  const isCurrentMonth = serverTodayParts
-    ? serverTodayYear === year && serverTodayMonth === month + 1
-    : false;
+  // 서버 기준 오늘 날짜 파싱 (KST 오전 5시 기준), 비로그인 시 브라우저 시간 fallback
+  const effectiveToday = serverToday || new Date().toISOString().split('T')[0];
+  const todayParts = effectiveToday.split('-').map(Number);
+  const todayYear = todayParts[0];
+  const todayMonth = todayParts[1]; // 1-based
+  const todayDay = todayParts[2];
+  const isCurrentMonth = todayYear === year && todayMonth === month + 1;
 
   const attendanceDates = useMemo(() => {
     return new Set(attendance.map(a => a.check_date));
@@ -176,13 +173,13 @@ export default function AttendancePage({ setPage }) {
     // 이번 달의 날짜
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const isToday = isCurrentMonth && serverTodayDay === day;
+      const isToday = isCurrentMonth && todayDay === day;
       const isChecked = attendanceDates.has(dateStr);
-      const isPast = serverToday ? dateStr < serverToday : false;
+      const isPast = dateStr < effectiveToday;
       days.push({ day, dateStr, isToday, isChecked, isPast, isCurrentMonth: true });
     }
     return days;
-  }, [year, month, daysInMonth, firstDayOfMonth, attendanceDates, isCurrentMonth, serverToday, serverTodayDay]);
+  }, [year, month, daysInMonth, firstDayOfMonth, attendanceDates, isCurrentMonth, effectiveToday, todayDay]);
 
   const monthlyCheckCount = attendance.length;
 
@@ -322,7 +319,7 @@ export default function AttendancePage({ setPage }) {
                   <div className="stamp-inner">
                     <div className="stamp-check"></div>
                     <span className="stamp-text">오늘 출석 완료</span>
-                    <span className="stamp-date">{serverTodayMonth}.{serverTodayDay}</span>
+                    <span className="stamp-date">{todayMonth}.{todayDay}</span>
                   </div>
                 </div>
               ) : (
