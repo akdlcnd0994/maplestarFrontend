@@ -4,7 +4,7 @@ import { api } from '../services/api';
 export default function AttendanceWidget() {
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
-  const today = new Date();
+  const [serverToday, setServerToday] = useState(null);
 
   useEffect(() => {
     checkTodayAttendance();
@@ -12,10 +12,9 @@ export default function AttendanceWidget() {
 
   const checkTodayAttendance = async () => {
     try {
-      const res = await api.getAttendance();
-      const todayStr = today.toISOString().split('T')[0];
-      const todayRecord = res.data?.find(a => a.check_date === todayStr);
-      setChecked(!!todayRecord);
+      const res = await api.getAttendanceStats();
+      if (res.data?.server_today) setServerToday(res.data.server_today);
+      setChecked(!!res.data?.checked_today);
     } catch (e) {
       // 로그인 안된 상태면 무시
     }
@@ -37,7 +36,7 @@ export default function AttendanceWidget() {
     <div className="attendance-widget">
       <div className="attendance-header">
         <span>📅 출석체크</span>
-        <span className="attendance-date">{today.getMonth() + 1}/{today.getDate()}</span>
+        <span className="attendance-date">{serverToday ? `${parseInt(serverToday.split('-')[1])}/${parseInt(serverToday.split('-')[2])}` : ''}</span>
       </div>
       {checked ? (
         <div className="attendance-done">
