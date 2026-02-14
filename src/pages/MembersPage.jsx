@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { getIconEmoji } from '../components/UserAvatar';
+import { formatDate } from '../utils/format';
 
 export default function MembersPage({ setPage, selectedMember, setSelectedMember }) {
   const { user } = useAuth();
@@ -105,12 +106,6 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
       alert(e.message);
     }
     setUpdatingRole(false);
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
   };
 
   return (
@@ -298,7 +293,7 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
                 )}
                 <div className="detail-stat full">
                   <span className="stat-label">가입일</span>
-                  <span className="stat-value">{formatDate(showDetail.created_at)}</span>
+                  <span className="stat-value">{formatDate(showDetail.created_at) || '-'}</span>
                 </div>
               </div>
 
