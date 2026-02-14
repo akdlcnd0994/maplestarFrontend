@@ -677,11 +677,40 @@ function AdminTab({ setPage }) {
 
   const isMaster = user?.role === 'master';
 
+  // 포인트 관리 상태
+  const [pointConfig, setPointConfig] = useState([]);
+  const [pointUsers, setPointUsers] = useState([]);
+  const [pointGrantUser, setPointGrantUser] = useState(null);
+  const [pointAmount, setPointAmount] = useState('');
+  const [pointDesc, setPointDesc] = useState('');
+  const [showPointModal, setShowPointModal] = useState(false);
+  const [pointAction, setPointAction] = useState('grant');
+
+  // 교환소 관리 상태
+  const [shopItems, setShopItems] = useState([]);
+  const [showShopModal, setShowShopModal] = useState(false);
+  const [editingShopItem, setEditingShopItem] = useState(null);
+  const [shopForm, setShopForm] = useState({ name: '', description: '', price: '', stock: '', max_per_user: '1', sort_order: '0' });
+  const [shopFile, setShopFile] = useState(null);
+
+  // 공지 팝업 관리 상태
+  const [announceList, setAnnounceList] = useState([]);
+  const [showAnnounceModal, setShowAnnounceModal] = useState(false);
+  const [editingAnnounce, setEditingAnnounce] = useState(null);
+  const [announceForm, setAnnounceForm] = useState({ title: '', content: '', type: 'info', priority: '0' });
+
+  // 감사 로그
+  const [auditLogs, setAuditLogs] = useState([]);
+
   const adminTabs = [
     { id: 'pending', label: '가입 대기' },
     { id: 'members', label: '멤버 관리' },
+    { id: 'points', label: '포인트 관리' },
+    { id: 'shop_admin', label: '교환소 관리' },
+    { id: 'announce', label: '공지 팝업' },
     { id: 'incubator', label: '부화기 관리' },
     { id: 'rankings', label: '랭킹 관리' },
+    { id: 'audit', label: '감사 로그' },
     { id: 'shortcuts', label: '빠른 이동' },
   ];
 
@@ -701,6 +730,22 @@ function AdminTab({ setPage }) {
       } else if (activeAdminTab === 'incubator') {
         const res = await api.getIncubatorAdminUsers();
         setIncubatorUsers(res.data || []);
+      } else if (activeAdminTab === 'points') {
+        const [configRes, usersRes] = await Promise.all([
+          api.getPointConfig(),
+          api.getPointUsers(),
+        ]);
+        setPointConfig(configRes.data || []);
+        setPointUsers(usersRes.data || []);
+      } else if (activeAdminTab === 'shop_admin') {
+        const res = await api.getAdminShopItems();
+        setShopItems(res.data || []);
+      } else if (activeAdminTab === 'announce') {
+        const res = await api.getAdminAnnouncements();
+        setAnnounceList(res.data || []);
+      } else if (activeAdminTab === 'audit') {
+        const res = await api.getAuditLog({ limit: 50 });
+        setAuditLogs(res.data || []);
       }
     } catch (e) {
       console.error('Failed to load admin data:', e);
@@ -1020,6 +1065,192 @@ function AdminTab({ setPage }) {
             </div>
           )}
 
+          {/* 포인트 관리 */}
+          {activeAdminTab === 'points' && (
+            <div className="admin-points">
+              <h4>활동 포인트 설정</h4>
+              <div className="point-config-list">
+                {pointConfig.map(cfg => (
+                  <div key={cfg.id} className="point-config-item">
+                    <div className="point-config-info">
+                      <span className="point-config-name">{cfg.activity_name}</span>
+                      <span className="point-config-type">{cfg.activity_type}</span>
+                    </div>
+                    <div className="point-config-controls">
+                      <label>포인트
+                        <input type="number" value={cfg.points_per_action} min="0" max="100"
+                          onChange={async (e) => {
+                            const val = parseInt(e.target.value);
+                            if (isNaN(val)) return;
+                            try {
+                              await api.updatePointConfig(cfg.activity_type, { points_per_action: val });
+                              setPointConfig(prev => prev.map(c => c.activity_type === cfg.activity_type ? { ...c, points_per_action: val } : c));
+                            } catch (err) { alert(err.message); }
+                          }}
+                        />
+                      </label>
+                      <label>일일제한
+                        <input type="number" value={cfg.daily_limit} min="0" max="100"
+                          onChange={async (e) => {
+                            const val = parseInt(e.target.value);
+                            if (isNaN(val)) return;
+                            try {
+                              await api.updatePointConfig(cfg.activity_type, { daily_limit: val });
+                              setPointConfig(prev => prev.map(c => c.activity_type === cfg.activity_type ? { ...c, daily_limit: val } : c));
+                            } catch (err) { alert(err.message); }
+                          }}
+                        />
+                      </label>
+                      <label className="point-config-toggle">
+                        <input type="checkbox" checked={cfg.is_active === 1}
+                          onChange={async (e) => {
+                            const val = e.target.checked ? 1 : 0;
+                            try {
+                              await api.updatePointConfig(cfg.activity_type, { is_active: val });
+                              setPointConfig(prev => prev.map(c => c.activity_type === cfg.activity_type ? { ...c, is_active: val } : c));
+                            } catch (err) { alert(err.message); }
+                          }}
+                        />
+                        활성
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <h4 style={{ marginTop: '24px' }}>유저 포인트 관리</h4>
+              <div className="point-users-list">
+                {pointUsers.map(u => (
+                  <div key={u.id} className="point-user-item">
+                    <div className="point-user-info">
+                      <span className="point-user-name">{u.character_name}</span>
+                      <span className="point-user-balance">{(u.balance || 0).toLocaleString()}P</span>
+                    </div>
+                    <div className="point-user-actions">
+                      <button className="btn-small btn-bonus" onClick={() => {
+                        setPointGrantUser(u); setPointAction('grant'); setPointAmount(''); setPointDesc(''); setShowPointModal(true);
+                      }}>지급</button>
+                      <button className="btn-small btn-revoke" onClick={() => {
+                        setPointGrantUser(u); setPointAction('deduct'); setPointAmount(''); setPointDesc(''); setShowPointModal(true);
+                      }}>차감</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 교환소 관리 */}
+          {activeAdminTab === 'shop_admin' && (
+            <div className="admin-shop">
+              <div className="admin-shop-header">
+                <h4>교환소 상품 관리</h4>
+                <button className="btn-add-item" onClick={() => {
+                  setEditingShopItem(null);
+                  setShopForm({ name: '', description: '', price: '', stock: '', max_per_user: '1', sort_order: '0' });
+                  setShopFile(null);
+                  setShowShopModal(true);
+                }}>+ 상품 추가</button>
+              </div>
+              <div className="shop-admin-list">
+                {shopItems.map(item => (
+                  <div key={item.id} className={`shop-admin-item ${!item.is_active ? 'inactive' : ''}`}>
+                    <div className="shop-admin-image">
+                      {item.image_url ? <img src={getImageUrl(item.image_url)} alt="" /> : <div className="no-img">No Image</div>}
+                    </div>
+                    <div className="shop-admin-info">
+                      <span className="shop-admin-name">{item.name}</span>
+                      <span className="shop-admin-price">{item.price}P / 재고 {item.stock}개</span>
+                    </div>
+                    <div className="shop-admin-actions">
+                      <button className="btn-small" onClick={() => {
+                        setEditingShopItem(item);
+                        setShopForm({
+                          name: item.name, description: item.description || '', price: String(item.price),
+                          stock: String(item.stock), max_per_user: String(item.max_per_user), sort_order: String(item.sort_order),
+                        });
+                        setShopFile(null);
+                        setShowShopModal(true);
+                      }}>수정</button>
+                      <button className="btn-small btn-revoke" onClick={async () => {
+                        if (!confirm(`"${item.name}" 상품을 삭제하시겠습니까?`)) return;
+                        try { await api.deleteShopItem(item.id); loadAdminData(); } catch (e) { alert(e.message); }
+                      }}>삭제</button>
+                    </div>
+                  </div>
+                ))}
+                {shopItems.length === 0 && <div className="empty-message">등록된 상품이 없습니다.</div>}
+              </div>
+            </div>
+          )}
+
+          {/* 공지 팝업 관리 */}
+          {activeAdminTab === 'announce' && (
+            <div className="admin-announce">
+              <div className="admin-announce-header">
+                <h4>공지 팝업 관리</h4>
+                <button className="btn-add-item" onClick={() => {
+                  setEditingAnnounce(null);
+                  setAnnounceForm({ title: '', content: '', type: 'info', priority: '0' });
+                  setShowAnnounceModal(true);
+                }}>+ 공지 추가</button>
+              </div>
+              <div className="announce-admin-list">
+                {announceList.map(ann => (
+                  <div key={ann.id} className={`announce-admin-item ${!ann.is_active ? 'inactive' : ''}`}>
+                    <div className="announce-admin-info">
+                      <span className={`announce-type-tag type-${ann.type}`}>
+                        {ann.type === 'info' ? '안내' : ann.type === 'feature' ? '새 기능' : ann.type === 'event' ? '이벤트' : '점검'}
+                      </span>
+                      <span className="announce-admin-title">{ann.title}</span>
+                      <span className="announce-admin-date">{ann.created_at?.slice(0, 10)}</span>
+                    </div>
+                    <div className="announce-admin-actions">
+                      <button className="btn-small" onClick={() => {
+                        setEditingAnnounce(ann);
+                        setAnnounceForm({
+                          title: ann.title, content: ann.content, type: ann.type, priority: String(ann.priority),
+                        });
+                        setShowAnnounceModal(true);
+                      }}>수정</button>
+                      <button className="btn-small" onClick={async () => {
+                        const newActive = ann.is_active ? 0 : 1;
+                        try { await api.updateAnnouncement(ann.id, { is_active: newActive }); loadAdminData(); } catch (e) { alert(e.message); }
+                      }}>{ann.is_active ? '비활성' : '활성화'}</button>
+                      <button className="btn-small btn-revoke" onClick={async () => {
+                        if (!confirm('이 공지를 삭제하시겠습니까?')) return;
+                        try { await api.deleteAnnouncement(ann.id); loadAdminData(); } catch (e) { alert(e.message); }
+                      }}>삭제</button>
+                    </div>
+                  </div>
+                ))}
+                {announceList.length === 0 && <div className="empty-message">등록된 공지가 없습니다.</div>}
+              </div>
+            </div>
+          )}
+
+          {/* 감사 로그 */}
+          {activeAdminTab === 'audit' && (
+            <div className="admin-audit">
+              <h4>관리자 감사 로그</h4>
+              <div className="audit-log-list">
+                {auditLogs.map(log => (
+                  <div key={log.id} className="audit-log-item">
+                    <div className="audit-log-info">
+                      <span className="audit-log-action">{log.action_type}</span>
+                      <span className="audit-log-target">{log.target_type} #{log.target_id}</span>
+                    </div>
+                    <div className="audit-log-meta">
+                      <span className="audit-log-admin">{log.admin_name}</span>
+                      <span className="audit-log-date">{log.created_at?.slice(0, 16)}</span>
+                    </div>
+                  </div>
+                ))}
+                {auditLogs.length === 0 && <div className="empty-message">로그가 없습니다.</div>}
+              </div>
+            </div>
+          )}
+
           {/* 빠른 이동 */}
           {activeAdminTab === 'shortcuts' && (
             <div className="admin-shortcuts">
@@ -1145,6 +1376,141 @@ function AdminTab({ setPage }) {
             <button className="btn-grant-bonus" onClick={handleGrantBonus}>지급하기</button>
           </div>
         )}
+      </Modal>
+
+      {/* 포인트 지급/차감 모달 */}
+      <Modal isOpen={showPointModal} onClose={() => setShowPointModal(false)} title={pointAction === 'grant' ? '포인트 지급' : '포인트 차감'}>
+        {pointGrantUser && (
+          <div className="bonus-modal">
+            <p><strong>{pointGrantUser.character_name}</strong>님 (현재: {(pointGrantUser.balance || 0).toLocaleString()}P)</p>
+            <div className="bonus-input-group">
+              <label>포인트 수량</label>
+              <input type="number" value={pointAmount} onChange={(e) => setPointAmount(e.target.value)} min="1" max="10000" placeholder="수량" />
+            </div>
+            <div className="bonus-input-group">
+              <label>사유</label>
+              <input type="text" value={pointDesc} onChange={(e) => setPointDesc(e.target.value)} placeholder="사유 입력" />
+            </div>
+            <button className="btn-grant-bonus" onClick={async () => {
+              const amt = parseInt(pointAmount);
+              if (!amt || amt <= 0) { alert('올바른 수량을 입력하세요.'); return; }
+              try {
+                if (pointAction === 'grant') {
+                  await api.grantPoints(pointGrantUser.id, amt, pointDesc);
+                  alert(`${amt}P 지급 완료`);
+                } else {
+                  await api.deductPoints(pointGrantUser.id, amt, pointDesc);
+                  alert(`${amt}P 차감 완료`);
+                }
+                setShowPointModal(false);
+                loadAdminData();
+              } catch (e) { alert(e.message); }
+            }}>{pointAction === 'grant' ? '지급하기' : '차감하기'}</button>
+          </div>
+        )}
+      </Modal>
+
+      {/* 교환소 상품 추가/수정 모달 */}
+      <Modal isOpen={showShopModal} onClose={() => setShowShopModal(false)} title={editingShopItem ? '상품 수정' : '상품 추가'}>
+        <div className="shop-form-modal">
+          <div className="form-group">
+            <label>상품명</label>
+            <input type="text" value={shopForm.name} onChange={(e) => setShopForm(p => ({ ...p, name: e.target.value }))} placeholder="상품명" />
+          </div>
+          <div className="form-group">
+            <label>설명</label>
+            <textarea value={shopForm.description} onChange={(e) => setShopForm(p => ({ ...p, description: e.target.value }))} placeholder="상품 설명" rows="3" />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>가격 (P)</label>
+              <input type="number" value={shopForm.price} onChange={(e) => setShopForm(p => ({ ...p, price: e.target.value }))} min="1" />
+            </div>
+            <div className="form-group">
+              <label>재고</label>
+              <input type="number" value={shopForm.stock} onChange={(e) => setShopForm(p => ({ ...p, stock: e.target.value }))} min="0" />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>인당 최대</label>
+              <input type="number" value={shopForm.max_per_user} onChange={(e) => setShopForm(p => ({ ...p, max_per_user: e.target.value }))} min="1" />
+            </div>
+            <div className="form-group">
+              <label>정렬순서</label>
+              <input type="number" value={shopForm.sort_order} onChange={(e) => setShopForm(p => ({ ...p, sort_order: e.target.value }))} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label>이미지</label>
+            <input type="file" accept="image/*" onChange={(e) => setShopFile(e.target.files[0])} />
+          </div>
+          <button className="btn-save-profile" onClick={async () => {
+            if (!shopForm.name || !shopForm.price) { alert('상품명과 가격은 필수입니다.'); return; }
+            const formData = new FormData();
+            formData.append('name', shopForm.name);
+            formData.append('description', shopForm.description);
+            formData.append('price', shopForm.price);
+            formData.append('stock', shopForm.stock || '0');
+            formData.append('max_per_user', shopForm.max_per_user || '1');
+            formData.append('sort_order', shopForm.sort_order || '0');
+            if (shopFile) formData.append('file', shopFile);
+            try {
+              if (editingShopItem) {
+                await api.updateShopItem(editingShopItem.id, formData);
+                alert('상품이 수정되었습니다.');
+              } else {
+                await api.createShopItem(formData);
+                alert('상품이 등록되었습니다.');
+              }
+              setShowShopModal(false);
+              loadAdminData();
+            } catch (e) { alert(e.message); }
+          }}>{editingShopItem ? '수정' : '등록'}</button>
+        </div>
+      </Modal>
+
+      {/* 공지 팝업 추가/수정 모달 */}
+      <Modal isOpen={showAnnounceModal} onClose={() => setShowAnnounceModal(false)} title={editingAnnounce ? '공지 수정' : '공지 추가'}>
+        <div className="announce-form-modal">
+          <div className="form-group">
+            <label>제목</label>
+            <input type="text" value={announceForm.title} onChange={(e) => setAnnounceForm(p => ({ ...p, title: e.target.value }))} placeholder="공지 제목" />
+          </div>
+          <div className="form-group">
+            <label>내용</label>
+            <textarea value={announceForm.content} onChange={(e) => setAnnounceForm(p => ({ ...p, content: e.target.value }))} placeholder="공지 내용" rows="6" />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>유형</label>
+              <select value={announceForm.type} onChange={(e) => setAnnounceForm(p => ({ ...p, type: e.target.value }))}>
+                <option value="info">안내</option>
+                <option value="feature">새 기능</option>
+                <option value="event">이벤트</option>
+                <option value="maintenance">점검</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>우선순위</label>
+              <input type="number" value={announceForm.priority} onChange={(e) => setAnnounceForm(p => ({ ...p, priority: e.target.value }))} min="0" />
+            </div>
+          </div>
+          <button className="btn-save-profile" onClick={async () => {
+            if (!announceForm.title || !announceForm.content) { alert('제목과 내용은 필수입니다.'); return; }
+            try {
+              if (editingAnnounce) {
+                await api.updateAnnouncement(editingAnnounce.id, { ...announceForm, priority: parseInt(announceForm.priority) || 0 });
+                alert('공지가 수정되었습니다.');
+              } else {
+                await api.createAnnouncement({ ...announceForm, priority: parseInt(announceForm.priority) || 0 });
+                alert('공지가 등록되었습니다.');
+              }
+              setShowAnnounceModal(false);
+              loadAdminData();
+            } catch (e) { alert(e.message); }
+          }}>{editingAnnounce ? '수정' : '등록'}</button>
+        </div>
       </Modal>
 
       {/* 프로필 수정 모달 */}

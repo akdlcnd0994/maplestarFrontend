@@ -18,6 +18,8 @@ export default function Header({ page, setPage, guildLogo }) {
     { id: 'members', label: '길드원' },
     { id: 'attendance', label: '출석체크' },
     { id: 'alliance', label: '연합길드' },
+    { id: 'point', label: '포인트' },
+    { id: 'shop', label: '교환소' },
   ];
 
   // 페이지 변경 시 모바일 메뉴 닫기
@@ -86,6 +88,9 @@ export default function Header({ page, setPage, guildLogo }) {
           <div className="header-actions">
             {isLoggedIn ? (
               <div className="user-menu">
+                <span className="header-point-badge" onClick={() => setPage('point')}>
+                  {(user?.point_balance || 0).toLocaleString()}P
+                </span>
                 <span className="user-name">{user?.character_name || user?.username}</span>
                 <button className="settings-btn" onClick={() => setPage('settings')}>⚙️</button>
                 <button className="user-btn" onClick={logout}>로그아웃</button>
@@ -146,6 +151,9 @@ export default function Header({ page, setPage, guildLogo }) {
                 <span className="mobile-user-role">
                   {user?.role === 'master' ? '길드마스터' :
                    user?.role === 'submaster' ? '부마스터' : '길드원'}
+                </span>
+                <span className="mobile-user-point" onClick={() => handleNavClick('point')}>
+                  {(user?.point_balance || 0).toLocaleString()}P
                 </span>
               </div>
             </div>

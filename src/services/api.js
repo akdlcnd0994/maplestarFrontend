@@ -579,6 +579,153 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  // ==================== 포인트 API ====================
+
+  async getPointBalance() {
+    return this.request('/points/balance');
+  }
+
+  async getPointTransactions(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/points/transactions?${query}`);
+  }
+
+  async getPointDaily() {
+    return this.request('/points/daily');
+  }
+
+  async getPointRanking(limit = 20) {
+    return this.request(`/points/ranking?limit=${limit}`);
+  }
+
+  // 포인트 관리자 API
+  async getPointConfig() {
+    return this.request('/points/admin/config');
+  }
+
+  async updatePointConfig(activityType, config) {
+    return this.request(`/points/admin/config/${activityType}`, {
+      method: 'PUT',
+      body: JSON.stringify(config),
+    });
+  }
+
+  async grantPoints(userId, amount, description) {
+    return this.request('/points/admin/grant', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId, amount, description }),
+    });
+  }
+
+  async deductPoints(userId, amount, description) {
+    return this.request('/points/admin/deduct', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId, amount, description }),
+    });
+  }
+
+  async getPointUsers() {
+    return this.request('/points/admin/users');
+  }
+
+  async getUserPointTransactions(userId, limit = 50) {
+    return this.request(`/points/admin/users/${userId}/transactions?limit=${limit}`);
+  }
+
+  async getAuditLog(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/points/admin/audit-log?${query}`);
+  }
+
+  // ==================== 교환소 API ====================
+
+  async getShopItems() {
+    return this.request('/shop/items');
+  }
+
+  async purchaseShopItem(itemId, quantity = 1) {
+    return this.request('/shop/purchase', {
+      method: 'POST',
+      body: JSON.stringify({ item_id: itemId, quantity }),
+    });
+  }
+
+  async getShopOrders(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/shop/orders?${query}`);
+  }
+
+  // 교환소 관리자 API
+  async getAdminShopItems() {
+    return this.request('/shop/admin/items');
+  }
+
+  async createShopItem(formData) {
+    return this.request('/shop/admin/items', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async updateShopItem(id, formData) {
+    return this.request(`/shop/admin/items/${id}`, {
+      method: 'PUT',
+      body: formData,
+    });
+  }
+
+  async deleteShopItem(id) {
+    return this.request(`/shop/admin/items/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getAdminShopOrders(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/shop/admin/orders?${query}`);
+  }
+
+  // ==================== 공지 팝업 API ====================
+
+  async getUnreadAnnouncements() {
+    return this.request('/announcements/unread');
+  }
+
+  async markAnnouncementRead(id) {
+    return this.request(`/announcements/${id}/read`, {
+      method: 'POST',
+    });
+  }
+
+  async getAnnouncements() {
+    return this.request('/announcements');
+  }
+
+  // 공지 팝업 관리자 API
+  async getAdminAnnouncements() {
+    return this.request('/announcements/admin/list');
+  }
+
+  async createAnnouncement(data) {
+    return this.request('/announcements/admin', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAnnouncement(id, data) {
+    return this.request(`/announcements/admin/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAnnouncement(id) {
+    return this.request(`/announcements/admin/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const api = new ApiClient();

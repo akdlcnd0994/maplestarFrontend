@@ -22,6 +22,9 @@ import AttendancePage from './pages/AttendancePage';
 import GamesPage from './pages/GamesPage';
 import ScrollPage from './pages/ScrollPage';
 import IncubatorPage from './pages/IncubatorPage';
+import PointPage from './pages/PointPage';
+import ShopPage from './pages/ShopPage';
+import AnnouncementPopup from './components/AnnouncementPopup';
 
 export default function App() {
   const { isLoggedIn, loading, sessionExpired, clearSessionExpired } = useAuth();
@@ -79,6 +82,10 @@ export default function App() {
         return <ScrollPage {...pageProps} />;
       case 'incubator':
         return <IncubatorPage {...pageProps} />;
+      case 'point':
+        return <PointPage {...pageProps} />;
+      case 'shop':
+        return <ShopPage {...pageProps} />;
       default:
         return <MainPage {...pageProps} />;
     }
@@ -101,6 +108,8 @@ export default function App() {
       <div className="bg-pattern"></div>
 
       <Header page={page} setPage={setPage} guildLogo={guildLogo} />
+
+      {isLoggedIn && <AnnouncementPopup />}
 
       <main className="main-content">{renderPage()}</main>
 
