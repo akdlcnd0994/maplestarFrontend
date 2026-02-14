@@ -7,7 +7,9 @@ export const getImageUrl = (url) => {
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   // /api/images/... 형태인 경우 API 베이스 URL로 변환
   if (url.startsWith('/api/')) {
-    const apiOrigin = API_BASE.replace('/api', '');
+    const apiOrigin = API_BASE.endsWith('/api')
+      ? API_BASE.slice(0, -4)
+      : API_BASE.replace(/\/api$/, '');
     return apiOrigin + url;
   }
   return url;
