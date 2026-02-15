@@ -2,6 +2,7 @@
 import { useAuth } from '../context/AuthContext';
 import { api, getImageUrl } from '../services/api';
 import { getIconEmoji } from '../components/UserAvatar';
+import StyledName, { ProfileFrame } from '../components/StyledName';
 
 export default function GamesPage({ setPage }) {
   const { isLoggedIn, user, checkAuth } = useAuth();
@@ -298,19 +299,21 @@ function RankingsView({ rankings, games }) {
               <div className="ranking-position">
                 {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
               </div>
-              <div className="ranking-avatar">
-                {entry.user?.profile_image ? (
-                  <img
-                    src={getImageUrl(entry.user.profile_image)}
-                    alt=""
-                    style={{ transform: `scale(${entry.user.profile_zoom || 1})` }}
-                  />
-                ) : (
-                  <span>{getIconEmoji(entry.user?.default_icon)}</span>
-                )}
-              </div>
+              <ProfileFrame user={entry.user} size="sm">
+                <div className="ranking-avatar">
+                  {entry.user?.profile_image ? (
+                    <img
+                      src={getImageUrl(entry.user.profile_image)}
+                      alt=""
+                      style={{ transform: `scale(${entry.user.profile_zoom || 1})` }}
+                    />
+                  ) : (
+                    <span>{getIconEmoji(entry.user?.default_icon)}</span>
+                  )}
+                </div>
+              </ProfileFrame>
               <div className="ranking-info">
-                <span className="ranking-name">{entry.user?.character_name}</span>
+                <StyledName user={entry.user} showTitle={false} className="ranking-name" />
               </div>
               <div className="ranking-score">
                 {entry.score}{game?.unit}

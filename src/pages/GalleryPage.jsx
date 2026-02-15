@@ -3,7 +3,7 @@ import { api, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
 import { getIconEmoji } from '../components/UserAvatar';
-import StyledName from '../components/StyledName';
+import StyledName, { ProfileFrame } from '../components/StyledName';
 
 export default function GalleryPage({ setPage }) {
   const { user, isLoggedIn, checkAuth } = useAuth();

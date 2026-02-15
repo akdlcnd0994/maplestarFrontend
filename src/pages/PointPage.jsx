@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
+import { api, getImageUrl } from '../services/api';
 import { formatDateTime } from '../utils/format';
+import StyledName, { ProfileFrame } from '../components/StyledName';
+import { getIconEmoji } from '../components/UserAvatar';
 
 const TYPE_LABELS = {
   earn: '획득',
@@ -203,9 +205,18 @@ export default function PointPage({ setPage }) {
               {ranking.length === 0 && <div className="empty-message">아직 랭킹 데이터가 없습니다.</div>}
               {ranking.map((r, i) => (
                 <div key={r.user_id} className={`point-ranking-item ${i < 3 ? 'top-' + (i + 1) : ''}`}>
-                  <div className="point-rank-num">{i + 1}</div>
+                  <div className="point-rank-num">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</div>
+                  <ProfileFrame user={r} size="sm">
+                    <div className="point-rank-avatar">
+                      {r.profile_image ? (
+                        <img src={getImageUrl(r.profile_image)} alt="" style={{ transform: `scale(${r.profile_zoom || 1})` }} />
+                      ) : (
+                        <span>{getIconEmoji(r.default_icon)}</span>
+                      )}
+                    </div>
+                  </ProfileFrame>
                   <div className="point-rank-user">
-                    <span className="point-rank-name">{r.character_name}</span>
+                    <StyledName user={r} />
                     {r.job && <span className="point-rank-job">{r.job}</span>}
                   </div>
                   <div className="point-rank-points">{r.total_earned?.toLocaleString()}P</div>

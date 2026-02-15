@@ -412,14 +412,17 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
               <div className="empty-message">게시글이 없습니다. 첫 글을 작성해보세요!</div>
             ) : (
               posts.map((p) => (
-                <article key={p.id} className="board-item">
+                <article key={p.id} className={`board-item ${p.is_recommended ? 'recommended' : ''}`}>
+                  {p.is_recommended ? <div className="recommended-badge">추천</div> : null}
                   <div className="board-item-header">
                     <div className="board-author">
-                      <div className={`board-avatar ${p.user?.default_icon && !p.user?.profile_image ? 'has-icon' : ''}`}>
-                        {p.user?.profile_image ? (
-                          <img src={getImageUrl(p.user.profile_image)} alt="" style={{ transform: `scale(${p.user?.profile_zoom || 1})` }} />
-                        ) : getIconEmoji(p.user?.default_icon)}
-                      </div>
+                      <ProfileFrame user={p.user} size="sm">
+                        <div className={`board-avatar ${p.user?.default_icon && !p.user?.profile_image ? 'has-icon' : ''}`}>
+                          {p.user?.profile_image ? (
+                            <img src={getImageUrl(p.user.profile_image)} alt="" style={{ transform: `scale(${p.user?.profile_zoom || 1})` }} />
+                          ) : getIconEmoji(p.user?.default_icon)}
+                        </div>
+                      </ProfileFrame>
                       <div className="board-author-info">
                         <div className="author-name-row">
                           <StyledName user={p.user} />
@@ -485,11 +488,13 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
                             ) : (
                               (comments[p.id] || []).map((c) => (
                                 <div key={c.id} className="comment-item">
-                                  <div className={`comment-avatar ${c.user?.default_icon && !c.user?.profile_image ? 'has-icon' : ''}`}>
-                                    {c.user?.profile_image ? (
-                                      <img src={getImageUrl(c.user.profile_image)} alt="" style={{ transform: `scale(${c.user?.profile_zoom || 1})` }} />
-                                    ) : getIconEmoji(c.user?.default_icon)}
-                                  </div>
+                                  <ProfileFrame user={c.user} size="sm">
+                                    <div className={`comment-avatar ${c.user?.default_icon && !c.user?.profile_image ? 'has-icon' : ''}`}>
+                                      {c.user?.profile_image ? (
+                                        <img src={getImageUrl(c.user.profile_image)} alt="" style={{ transform: `scale(${c.user?.profile_zoom || 1})` }} />
+                                      ) : getIconEmoji(c.user?.default_icon)}
+                                    </div>
+                                  </ProfileFrame>
                                   <div className="comment-body">
                                     <div className="comment-header">
                                       <StyledName user={c.user} showTitle={false} className="comment-author" />

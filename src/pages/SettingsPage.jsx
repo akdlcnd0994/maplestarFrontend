@@ -1456,18 +1456,42 @@ function AdminTab({ setPage }) {
             <div className="admin-audit">
               <h4>관리자 감사 로그</h4>
               <div className="audit-log-list">
-                {auditLogs.map(log => (
-                  <div key={log.id} className="audit-log-item">
-                    <div className="audit-log-info">
-                      <span className="audit-log-action">{log.action_type}</span>
-                      <span className="audit-log-target">{log.target_type} #{log.target_id}</span>
+                {auditLogs.map(log => {
+                  const details = (() => { try { return JSON.parse(log.details || '{}'); } catch { return {}; } })();
+                  const actionLabels = {
+                    update_point_config: '포인트 설정 변경',
+                    grant_points: '포인트 수동 지급',
+                    deduct_points: '포인트 수동 차감',
+                    update_member_role: '역할 변경',
+                    approve_member: '가입 승인',
+                    reject_member: '가입 거부',
+                    delete_member: '멤버 삭제',
+                    update_member_info: '멤버 정보 수정',
+                  };
+                  return (
+                    <div key={log.id} className="audit-log-item">
+                      <div className="audit-log-info">
+                        <span className="audit-log-action">{actionLabels[log.action_type] || log.action_type}</span>
+                        <span className="audit-log-target">{log.target_type} #{log.target_id}</span>
+                      </div>
+                      <div className="audit-log-details">
+                        {details.amount && <span className="audit-detail">금액: {details.amount}P</span>}
+                        {details.description && <span className="audit-detail">사유: {details.description}</span>}
+                        {details.newBalance !== undefined && <span className="audit-detail">변경 후 잔액: {details.newBalance}P</span>}
+                        {details.points_per_action !== undefined && <span className="audit-detail">포인트/회: {details.points_per_action}</span>}
+                        {details.daily_limit !== undefined && <span className="audit-detail">일일 제한: {details.daily_limit}</span>}
+                        {details.is_active !== undefined && <span className="audit-detail">활성: {details.is_active ? '예' : '아니오'}</span>}
+                        {details.role && <span className="audit-detail">역할: {details.role}</span>}
+                        {details.reason && <span className="audit-detail">사유: {details.reason}</span>}
+                        {Object.keys(details).length === 0 && <span className="audit-detail muted">상세 정보 없음</span>}
+                      </div>
+                      <div className="audit-log-meta">
+                        <span className="audit-log-admin">{log.admin_name}</span>
+                        <span className="audit-log-date">{log.created_at?.slice(0, 16)}</span>
+                      </div>
                     </div>
-                    <div className="audit-log-meta">
-                      <span className="audit-log-admin">{log.admin_name}</span>
-                      <span className="audit-log-date">{log.created_at?.slice(0, 16)}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {auditLogs.length === 0 && <div className="empty-message">로그가 없습니다.</div>}
               </div>
             </div>

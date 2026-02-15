@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { api, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { getIconEmoji } from '../components/UserAvatar';
+import StyledName, { ProfileFrame } from '../components/StyledName';
 import Modal from '../components/Modal';
 
 export default function AttendancePage({ setPage }) {
@@ -460,14 +461,16 @@ export default function AttendancePage({ setPage }) {
                       {i < 3 ? '' : i + 1}
                     </span>
                     <div className="rank-user">
-                      <div className="rank-avatar">
-                        {r.profile_image ? (
-                          <img src={getImageUrl(r.profile_image)} alt="" style={{ transform: `scale(${r.profile_zoom || 1})` }} />
-                        ) : (
-                          <span>{getIconEmoji(r.default_icon)}</span>
-                        )}
-                      </div>
-                      <span className="rank-name">{r.character_name}</span>
+                      <ProfileFrame user={r} size="sm">
+                        <div className="rank-avatar">
+                          {r.profile_image ? (
+                            <img src={getImageUrl(r.profile_image)} alt="" style={{ transform: `scale(${r.profile_zoom || 1})` }} />
+                          ) : (
+                            <span>{getIconEmoji(r.default_icon)}</span>
+                          )}
+                        </div>
+                      </ProfileFrame>
+                      <StyledName user={r} showTitle={false} className="rank-name" />
                     </div>
                     <div className="rank-stats">
                       <span className="total">{r.month_checks}<small>일</small></span>

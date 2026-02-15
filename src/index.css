@@ -75,6 +75,37 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 .mobile-nav-group-items.open { max-height: 200px; }
 .mobile-nav-child { padding-left: 44px !important; font-size: 14px !important; }
 
+/* 헤더 프로필 호버 팝업 */
+.header-profile-hover { position: relative; cursor: pointer; }
+.header-profile-popup { position: absolute; top: 100%; right: 0; min-width: 200px; background: var(--wood-dark); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.5); padding: 20px 16px; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; }
+.header-profile-hover:hover .header-profile-popup { opacity: 1; visibility: visible; }
+.profile-popup-avatar { display: flex; justify-content: center; }
+.profile-popup-img { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: var(--wood-medium); display: flex; align-items: center; justify-content: center; }
+.profile-popup-img img { width: 100%; height: 100%; object-fit: cover; }
+.profile-popup-icon { font-size: 28px; }
+.profile-popup-name { font-size: 15px; font-weight: 600; text-align: center; }
+.profile-popup-name .user-title-badge { display: block; margin-bottom: 4px; }
+.profile-popup-info { display: flex; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.6); }
+.profile-popup-role { color: var(--maple-gold); }
+.profile-popup-btn { margin-top: 6px; padding: 6px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: var(--cream); border-radius: 6px; font-size: 12px; cursor: pointer; transition: background 0.2s; }
+.profile-popup-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* 추천 게시물 배지 */
+.board-item.recommended { border: 1px solid rgba(218,165,32,0.4); background: rgba(218,165,32,0.05); }
+.recommended-badge { position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, var(--maple-gold), var(--maple-orange)); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; z-index: 2; }
+.board-item { position: relative; }
+
+/* 포인트 랭킹 아바타 */
+.point-rank-avatar { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background: var(--wood-medium); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.point-rank-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.point-rank-avatar span { font-size: 18px; }
+.point-ranking-item { display: flex; align-items: center; gap: 10px; }
+
+/* 감사 로그 디테일 */
+.audit-log-details { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.audit-detail { font-size: 12px; color: var(--cream); background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 4px; }
+.audit-detail.muted { opacity: 0.5; }
+
 .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .login-link, .register-link { background: none; border: 2px solid var(--wood-light); color: var(--cream); padding: 7px 12px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 20px; white-space: nowrap; }
 .login-link:hover { background: rgba(255,255,255,0.1); border-color: var(--maple-gold); color: var(--maple-gold); }

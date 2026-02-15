@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../services/api';
 import NotificationBell from './NotificationBell';
-import StyledName from './StyledName';
+import StyledName, { ProfileFrame } from './StyledName';
+import { getIconEmoji } from './UserAvatar';
 
 const navStructure = [
   { id: 'main', label: '홈' },
@@ -149,7 +150,32 @@ export default function Header({ page, setPage, guildLogo }) {
                     </span>
                   )}
                 </span>
-                <StyledName user={user} showTitle={false} className="user-name" />
+                <div className="header-profile-hover">
+                  <StyledName user={user} showTitle={false} className="user-name" />
+                  <div className="header-profile-popup">
+                    <div className="profile-popup-avatar">
+                      <ProfileFrame user={user} size="md">
+                        <div className="profile-popup-img">
+                          {user?.profile_image ? (
+                            <img src={getImageUrl(user.profile_image)} alt="" style={{ transform: `scale(${user.profile_zoom || 1})` }} />
+                          ) : (
+                            <span className="profile-popup-icon">{getIconEmoji(user?.default_icon)}</span>
+                          )}
+                        </div>
+                      </ProfileFrame>
+                    </div>
+                    <StyledName user={user} showTitle={true} className="profile-popup-name" />
+                    <div className="profile-popup-info">
+                      <span className="profile-popup-job">{user?.job || '-'}</span>
+                      <span className="profile-popup-role">
+                        {user?.role === 'master' ? '길드마스터' :
+                         user?.role === 'submaster' ? '부마스터' :
+                         user?.role === 'honorary' ? '명예길드원' : '길드원'}
+                      </span>
+                    </div>
+                    <button className="profile-popup-btn" onClick={() => setPage('settings')}>프로필 설정</button>
+                  </div>
+                </div>
                 <NotificationBell setPage={setPage} />
                 <button className="settings-btn" onClick={() => setPage('settings')}>⚙️</button>
                 <button className="user-btn" onClick={logout}>로그아웃</button>
