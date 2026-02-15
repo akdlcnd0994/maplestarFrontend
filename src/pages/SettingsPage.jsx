@@ -5,6 +5,7 @@ import { DEFAULT_ICONS, getIconEmoji } from '../components/UserAvatar';
 import Modal from '../components/Modal';
 import { JOB_LIST } from '../constants/jobs';
 import { formatDate } from '../utils/format';
+import StyledName, { ProfileFrame } from '../components/StyledName';
 
 export default function SettingsPage({ setPage, guildLogo, setGuildLogo }) {
   const { user, updateUser, isLoggedIn, checkAuth } = useAuth();
@@ -21,6 +22,7 @@ export default function SettingsPage({ setPage, guildLogo, setGuildLogo }) {
 
   const tabs = [
     { id: 'profile', label: '프로필 설정' },
+    { id: 'customize', label: '꾸미기' },
     { id: 'activity', label: '내 활동' },
     ...(isAdmin ? [{ id: 'admin', label: '관리' }] : []),
   ];
@@ -56,6 +58,9 @@ export default function SettingsPage({ setPage, guildLogo, setGuildLogo }) {
             setGuildLogo={setGuildLogo}
             isAdmin={isAdmin}
           />
+        )}
+        {activeTab === 'customize' && (
+          <CustomizeTab user={user} checkAuth={checkAuth} />
         )}
         {activeTab === 'activity' && (
           <ActivityTab
@@ -308,6 +313,200 @@ function ProfileTab({ user, updateUser, checkAuth, guildLogo, setGuildLogo, isAd
         </div>
       )}
     </>
+  );
+}
+
+// 꾸미기 탭
+function CustomizeTab({ user, checkAuth }) {
+  const [items, setItems] = useState([]);
+  const [myItems, setMyItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState(null);
+  const [equipping, setEquipping] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('name_color');
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [itemsRes, myRes] = await Promise.all([
+        api.getCustomizationItems(),
+        api.getMyCustomizations(),
+      ]);
+      setItems(itemsRes.data || []);
+      setMyItems(myRes.data || []);
+    } catch (e) {
+      console.error('Failed to load customization data:', e);
+    }
+    setLoading(false);
+  };
+
+  const categories = [
+    { id: 'name_color', label: '닉네임 색상', icon: '🎨' },
+    { id: 'frame', label: '프로필 프레임', icon: '🖼️' },
+    { id: 'title', label: '칭호', icon: '🏷️' },
+  ];
+
+  const isOwned = (itemId) => myItems.some(m => m.item_id === itemId);
+  const isEquipped = (itemId) => myItems.some(m => m.item_id === itemId && m.is_equipped);
+
+  const handlePurchase = async (itemId) => {
+    if (purchasing) return;
+    setPurchasing(itemId);
+    try {
+      await api.purchaseCustomization(itemId);
+      await loadData();
+      await checkAuth();
+    } catch (e) {
+      alert(e.message || '구매에 실패했습니다.');
+    }
+    setPurchasing(null);
+  };
+
+  const handleEquip = async (itemId, equip) => {
+    if (equipping) return;
+    setEquipping(itemId);
+    try {
+      await api.equipCustomization(itemId, equip);
+      await loadData();
+      await checkAuth();
+    } catch (e) {
+      alert(e.message || '장착에 실패했습니다.');
+    }
+    setEquipping(null);
+  };
+
+  const getRarityColor = (rarity) => {
+    switch (rarity) {
+      case 'legendary': return '#ff6b00';
+      case 'epic': return '#a855f7';
+      case 'rare': return '#3b82f6';
+      case 'uncommon': return '#22c55e';
+      default: return '#9ca3af';
+    }
+  };
+
+  const getRarityLabel = (rarity) => {
+    switch (rarity) {
+      case 'legendary': return '전설';
+      case 'epic': return '에픽';
+      case 'rare': return '레어';
+      case 'uncommon': return '고급';
+      default: return '일반';
+    }
+  };
+
+  const filteredItems = items.filter(item => item.type === activeCategory);
+
+  const renderPreview = (item) => {
+    if (item.type === 'name_color') {
+      const previewUser = { ...user, active_name_color: item.value, active_title: user?.active_title };
+      return <StyledName user={previewUser} showTitle={false} />;
+    }
+    if (item.type === 'frame') {
+      return (
+        <ProfileFrame user={{ active_frame: item.value }} size="sm">
+          <span className="customize-frame-preview-icon">👤</span>
+        </ProfileFrame>
+      );
+    }
+    if (item.type === 'title') {
+      return <span className="user-title-badge preview">{item.value}</span>;
+    }
+    return null;
+  };
+
+  if (loading) return <div className="loading">로딩 중...</div>;
+
+  return (
+    <div className="customize-tab">
+      <div className="customize-preview-card">
+        <h4>현재 내 프로필</h4>
+        <div className="customize-my-preview">
+          <ProfileFrame user={user} size="md">
+            {user?.profile_image ? (
+              <img src={getImageUrl(user.profile_image)} alt="" style={{ transform: `scale(${user.profile_zoom || 1})` }} />
+            ) : (
+              <span className="avatar-default-large">{getIconEmoji(user?.default_icon) || '👤'}</span>
+            )}
+          </ProfileFrame>
+          <div className="customize-my-name">
+            <StyledName user={user} />
+          </div>
+        </div>
+      </div>
+
+      <div className="customize-categories">
+        {categories.map(cat => (
+          <button
+            key={cat.id}
+            className={`customize-cat-btn ${activeCategory === cat.id ? 'active' : ''}`}
+            onClick={() => setActiveCategory(cat.id)}
+          >
+            <span className="cat-icon">{cat.icon}</span>
+            <span className="cat-label">{cat.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="customize-items-grid">
+        {filteredItems.length === 0 ? (
+          <div className="empty-message">아이템이 없습니다.</div>
+        ) : (
+          filteredItems.map(item => {
+            const owned = isOwned(item.id);
+            const equipped = isEquipped(item.id);
+            return (
+              <div key={item.id} className={`customize-item-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`}>
+                <div className="customize-item-header">
+                  <span className="customize-item-rarity" style={{ color: getRarityColor(item.rarity) }}>
+                    {getRarityLabel(item.rarity)}
+                  </span>
+                  {equipped && <span className="equipped-badge">장착중</span>}
+                </div>
+                <div className="customize-item-preview">
+                  {renderPreview(item)}
+                </div>
+                <div className="customize-item-info">
+                  <span className="customize-item-name">{item.name}</span>
+                  {item.description && <span className="customize-item-desc">{item.description}</span>}
+                </div>
+                <div className="customize-item-action">
+                  {!owned ? (
+                    <button
+                      className="customize-buy-btn"
+                      onClick={() => handlePurchase(item.id)}
+                      disabled={purchasing === item.id}
+                    >
+                      {purchasing === item.id ? '구매중...' : `${item.price}P 구매`}
+                    </button>
+                  ) : equipped ? (
+                    <button
+                      className="customize-unequip-btn"
+                      onClick={() => handleEquip(item.id, false)}
+                      disabled={equipping === item.id}
+                    >
+                      {equipping === item.id ? '처리중...' : '해제'}
+                    </button>
+                  ) : (
+                    <button
+                      className="customize-equip-btn"
+                      onClick={() => handleEquip(item.id, true)}
+                      disabled={equipping === item.id}
+                    >
+                      {equipping === item.id ? '처리중...' : '장착'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
   );
 }
 

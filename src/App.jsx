@@ -24,6 +24,7 @@ import ScrollPage from './pages/ScrollPage';
 import IncubatorPage from './pages/IncubatorPage';
 import PointPage from './pages/PointPage';
 import ShopPage from './pages/ShopPage';
+import RoulettePage from './pages/RoulettePage';
 import AnnouncementPopup from './components/AnnouncementPopup';
 
 export default function App() {
@@ -86,6 +87,8 @@ export default function App() {
         return <PointPage {...pageProps} />;
       case 'shop':
         return <ShopPage {...pageProps} />;
+      case 'roulette':
+        return <RoulettePage {...pageProps} />;
       default:
         return <MainPage {...pageProps} />;
     }

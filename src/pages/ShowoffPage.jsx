@@ -3,6 +3,7 @@ import { api, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
 import { getIconEmoji } from '../components/UserAvatar';
+import StyledName, { ProfileFrame } from '../components/StyledName';
 
 export default function ShowoffPage({ setPage }) {
   const { user, isLoggedIn, checkAuth } = useAuth();
@@ -421,7 +422,7 @@ export default function ShowoffPage({ setPage }) {
                       </div>
                       <div className="board-author-info">
                         <div className="author-name-row">
-                          <span className="author-name">{p.user?.character_name || '익명'}</span>
+                          <StyledName user={p.user} />
                           {p.user?.role === 'honorary' && (
                             <span className="user-badge honorary">명예</span>
                           )}
@@ -491,7 +492,7 @@ export default function ShowoffPage({ setPage }) {
                                   </div>
                                   <div className="comment-body">
                                     <div className="comment-header">
-                                      <span className="comment-author">{c.user?.character_name || '익명'}</span>
+                                      <StyledName user={c.user} showTitle={false} className="comment-author" />
                                       {c.user?.role === 'honorary' && (
                                         <span className="user-badge honorary small">명예</span>
                                       )}

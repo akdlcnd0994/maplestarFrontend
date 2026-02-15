@@ -732,6 +732,48 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // ==================== 룰렛 ====================
+  async getRoulettePrizes() {
+    return this.request('/roulette/prizes');
+  }
+  async getRouletteFreeSpin() {
+    return this.request('/roulette/free-spin');
+  }
+  async spinRoulette() {
+    return this.request('/roulette/spin', { method: 'POST', body: JSON.stringify({}) });
+  }
+  async getRouletteHistory() {
+    return this.request('/roulette/history');
+  }
+
+  // ==================== 알림 ====================
+  async getNotifications(limit = 30) {
+    return this.request(`/notifications?limit=${limit}`);
+  }
+  async getUnreadNotificationCount() {
+    return this.request('/notifications/unread-count');
+  }
+  async markNotificationRead(id) {
+    return this.request(`/notifications/${id}/read`, { method: 'PUT' });
+  }
+  async markAllNotificationsRead() {
+    return this.request('/notifications/read-all', { method: 'PUT' });
+  }
+
+  // ==================== 프로필 꾸미기 ====================
+  async getCustomizationItems() {
+    return this.request('/customizations/items');
+  }
+  async getMyCustomizations() {
+    return this.request('/customizations/my');
+  }
+  async purchaseCustomization(itemId) {
+    return this.request('/customizations/purchase', { method: 'POST', body: JSON.stringify({ itemId }) });
+  }
+  async equipCustomization(itemId, equip) {
+    return this.request('/customizations/equip', { method: 'PUT', body: JSON.stringify({ itemId, equip }) });
+  }
 }
 
 export const api = new ApiClient();

@@ -3,6 +3,7 @@ import { api, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { getIconEmoji } from '../components/UserAvatar';
 import { formatDate } from '../utils/format';
+import StyledName from '../components/StyledName';
 
 export default function MembersPage({ setPage, selectedMember, setSelectedMember }) {
   const { user } = useAuth();
@@ -201,7 +202,7 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
                   <div className="member-main">
                     <div className="member-info-col">
                       <div className="member-name-row">
-                        <span className="member-name">{m.character_name}</span>
+                        <StyledName user={m} showTitle={false} className="member-name" />
                         <span className={`member-role role-${m.role || 'member'}`}>
                           {roleInfo.label}
                         </span>
@@ -257,7 +258,7 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
               </div>
 
               <div className="member-detail-name">
-                <h2>{showDetail.character_name}</h2>
+                <h2><StyledName user={showDetail} /></h2>
                 <div className="member-detail-badges">
                   <span className={`role-tag role-${showDetail.role || 'member'}`}>
                     {roles[showDetail.role]?.label || '길드원'}

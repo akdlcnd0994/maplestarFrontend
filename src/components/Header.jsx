@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../services/api';
+import NotificationBell from './NotificationBell';
+import StyledName from './StyledName';
 
 export default function Header({ page, setPage, guildLogo }) {
   const { user, isLoggedIn, logout } = useAuth();
@@ -32,6 +34,7 @@ export default function Header({ page, setPage, guildLogo }) {
     { id: 'attendance', label: '출석체크' },
     { id: 'alliance', label: '연합길드' },
     { id: 'point', label: '포인트' },
+    { id: 'roulette', label: '룰렛' },
     { id: 'shop', label: '교환소' },
   ];
 
@@ -111,7 +114,8 @@ export default function Header({ page, setPage, guildLogo }) {
                     </span>
                   )}
                 </span>
-                <span className="user-name">{user?.character_name || user?.username}</span>
+                <StyledName user={user} showTitle={false} className="user-name" />
+                <NotificationBell setPage={setPage} />
                 <button className="settings-btn" onClick={() => setPage('settings')}>⚙️</button>
                 <button className="user-btn" onClick={logout}>로그아웃</button>
               </div>
@@ -167,7 +171,7 @@ export default function Header({ page, setPage, guildLogo }) {
                 )}
               </div>
               <div className="mobile-user-details">
-                <span className="mobile-user-name">{user?.character_name || user?.username}</span>
+                <StyledName user={user} showTitle={false} className="mobile-user-name" />
                 <span className="mobile-user-role">
                   {user?.role === 'master' ? '길드마스터' :
                    user?.role === 'submaster' ? '부마스터' : '길드원'}

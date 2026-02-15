@@ -3,6 +3,7 @@ import { api, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
 import { getIconEmoji } from '../components/UserAvatar';
+import StyledName from '../components/StyledName';
 
 export default function GalleryPage({ setPage }) {
   const { user, isLoggedIn, checkAuth } = useAuth();
@@ -384,7 +385,7 @@ export default function GalleryPage({ setPage }) {
               <h3>{lightbox.data.title}</h3>
               {lightbox.data.description && <p>{lightbox.data.description}</p>}
               <div className="lightbox-meta">
-                <span>{lightbox.data.user?.character_name || '익명'}</span>
+                <StyledName user={lightbox.data?.user} showTitle={false} />
                 <span>·</span>
                 <span>{formatTime(lightbox.data.created_at)}</span>
               </div>
@@ -435,7 +436,7 @@ export default function GalleryPage({ setPage }) {
                   <div className="gallery-card-info">
                     <span className="gallery-card-title">{img.title}</span>
                     <div className="gallery-card-meta">
-                      <span className="gallery-card-author">{img.user?.character_name || '익명'}</span>
+                      <StyledName user={img.user} showTitle={false} className="gallery-card-author" />
                       <span className="gallery-card-time">{formatTime(img.created_at)}</span>
                     </div>
                     <div className="gallery-card-actions">
