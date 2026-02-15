@@ -12455,8 +12455,111 @@ button.point-shop-banner {
 .shop-admin-price { font-size: 11px; color: var(--text-medium); }
 .shop-admin-actions { display: flex; gap: 6px; }
 
-.shop-form-modal .form-row, .announce-form-modal .form-row { display: flex; gap: 12px; }
-.shop-form-modal .form-row .form-group, .announce-form-modal .form-row .form-group { flex: 1; }
+/* 모달 폼 공통 */
+.shop-form-modal,
+.announce-form-modal,
+.profile-edit-modal {
+  padding: 20px 24px;
+}
+.shop-form-modal .form-group,
+.announce-form-modal .form-group,
+.profile-edit-modal .form-group {
+  margin-bottom: 14px;
+}
+.shop-form-modal .form-group label,
+.announce-form-modal .form-group label,
+.profile-edit-modal .form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wood-dark);
+  margin-bottom: 6px;
+}
+.shop-form-modal .form-group input,
+.shop-form-modal .form-group select,
+.shop-form-modal .form-group textarea,
+.announce-form-modal .form-group input,
+.announce-form-modal .form-group select,
+.announce-form-modal .form-group textarea,
+.profile-edit-modal .form-group input,
+.profile-edit-modal .form-group select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 2px solid rgba(74, 55, 40, 0.15);
+  border-radius: 8px;
+  background: var(--cream-light);
+  transition: border-color 0.2s;
+}
+.shop-form-modal .form-group input:focus,
+.shop-form-modal .form-group select:focus,
+.shop-form-modal .form-group textarea:focus,
+.announce-form-modal .form-group input:focus,
+.announce-form-modal .form-group select:focus,
+.announce-form-modal .form-group textarea:focus,
+.profile-edit-modal .form-group input:focus,
+.profile-edit-modal .form-group select:focus {
+  outline: none;
+  border-color: var(--maple-orange);
+  background: #fff;
+}
+.shop-form-modal .form-group textarea,
+.announce-form-modal .form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.6;
+}
+.shop-form-modal .form-group select,
+.announce-form-modal .form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a3728' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.shop-form-modal .form-row,
+.announce-form-modal .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.shop-form-modal .form-row .form-group,
+.announce-form-modal .form-row .form-group {
+  margin-bottom: 14px;
+}
+.shop-form-modal .form-group input[type="file"] {
+  padding: 8px;
+  font-size: 12px;
+  background: #fff;
+}
+
+/* 모달 폼 저장 버튼 */
+.btn-save-profile,
+.shop-form-modal > button,
+.announce-form-modal > button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, var(--wood-medium), var(--wood-dark));
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-save-profile:hover,
+.shop-form-modal > button:hover,
+.announce-form-modal > button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 55, 40, 0.25);
+}
 
 /* 공지 팝업 관리 */
 .announce-admin-list { display: flex; flex-direction: column; gap: 8px; }
@@ -12519,6 +12622,24 @@ button.point-shop-banner {
   .point-tx-right { text-align: left; }
   .point-ranking-item { padding: 10px 12px; }
   .point-rank-points { font-size: 13px; }
+
+  /* 모달 모바일 최적화 */
+  .modal-content { width: 95%; max-width: none; max-height: 85vh; border-radius: 12px; }
+  .modal-header { padding: 16px 18px; }
+  .modal-header h3 { font-size: 16px; }
+  .shop-form-modal, .announce-form-modal, .profile-edit-modal { padding: 16px 18px; }
+  .shop-form-modal .form-row,
+  .announce-form-modal .form-row { grid-template-columns: 1fr; gap: 0; }
+  .shop-form-modal .form-group input,
+  .shop-form-modal .form-group select,
+  .shop-form-modal .form-group textarea,
+  .announce-form-modal .form-group input,
+  .announce-form-modal .form-group select,
+  .announce-form-modal .form-group textarea { font-size: 16px; padding: 10px 12px; }
+  .announce-form-modal .form-group textarea { min-height: 120px; }
+  .btn-save-profile,
+  .shop-form-modal > button,
+  .announce-form-modal > button { padding: 14px; font-size: 15px; }
 }
 
 @media (max-width: 480px) {
@@ -12529,4 +12650,10 @@ button.point-shop-banner {
   .point-ranking-item { flex-wrap: wrap; gap: 4px; }
   .point-rank-user { flex: 1; min-width: 0; }
   .point-rank-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+
+  /* 모달 초소형 화면 */
+  .modal-content { width: 98%; margin: 0 4px; }
+  .shop-form-modal, .announce-form-modal, .profile-edit-modal { padding: 14px 16px; }
+  .shop-form-modal .form-group label,
+  .announce-form-modal .form-group label { font-size: 12px; }
 }
