@@ -331,6 +331,7 @@ function ReactionGame({ user, onScoreUpdate }) {
   const [bestTime, setBestTime] = useState(null);
   const [rank, setRank] = useState(null);
   const [attempts, setAttempts] = useState([]);
+  const [resultMsg, setResultMsg] = useState(null);
   const timeoutRef = useRef(null);
 
   useEffect(() => {
@@ -369,18 +370,22 @@ function ReactionGame({ user, onScoreUpdate }) {
       setAttempts(prev => [...prev, time]);
       setState('result');
 
-      // 서버에 점수 제출
-      if (!bestTime || time < bestTime) {
-        try {
-          const res = await api.submitGameScore('reaction', time);
-          if (res.data?.isNewRecord) {
-            setBestTime(time);
-            setRank(res.data.rank);
-          }
-          onScoreUpdate?.();
-        } catch (e) {
-          console.error('Failed to submit score:', e);
+      // 서버에 점수 제출 (항상)
+      try {
+        const res = await api.submitGameScore('reaction', time);
+        if (res.data?.isNewRecord) {
+          setBestTime(time);
+          setRank(res.data.rank);
+          setResultMsg({ type: 'record', text: '새 기록 달성!', points: res.data.pointEarned });
+        } else if (res.data?.pointEarned) {
+          setResultMsg({ type: 'point', text: `+${res.data.pointEarned}P 획득!`, points: res.data.pointEarned });
+        } else {
+          setResultMsg({ type: 'info', text: '기록 갱신 시 랭킹에 반영됩니다' });
         }
+        onScoreUpdate?.();
+      } catch (e) {
+        console.error('Failed to submit score:', e);
+        setResultMsg(null);
       }
     }
   };
@@ -448,6 +453,11 @@ function ReactionGame({ user, onScoreUpdate }) {
                reactionTime < 280 ? '😊 좋아요!' :
                reactionTime < 350 ? '○ 평균' : '▽ 더 빠르게!'}
             </div>
+            {resultMsg && (
+              <div className={`game-result-msg ${resultMsg.type}`}>
+                {resultMsg.text}
+              </div>
+            )}
             <div className="reaction-sub">클릭하여 다시 시도</div>
           </>
         )}
