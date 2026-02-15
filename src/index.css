@@ -12106,20 +12106,50 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   box-shadow: 0 2px 8px rgba(218, 165, 32, 0.35);
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
   position: relative;
-  animation: pointBadgePulse 3s ease-in-out infinite;
+  overflow: hidden;
+  animation: pointBadgeBounce 4s ease-in-out infinite;
+}
+/* 빛 반사 쉬머 효과 */
+.header-point-badge::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255,255,255,0.4) 45%,
+    rgba(255,255,255,0.6) 50%,
+    rgba(255,255,255,0.4) 55%,
+    transparent 60%
+  );
+  animation: pointBadgeShimmer 4s ease-in-out infinite;
+  pointer-events: none;
 }
 .header-point-badge:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 14px rgba(218, 165, 32, 0.5);
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 4px 16px rgba(218, 165, 32, 0.55);
   background: linear-gradient(135deg, #ffd54f, #f5c842, #daa520);
 }
 .header-point-badge:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.95);
   box-shadow: 0 1px 4px rgba(218, 165, 32, 0.3);
 }
-@keyframes pointBadgePulse {
-  0%, 100% { box-shadow: 0 2px 8px rgba(218, 165, 32, 0.35); }
-  50% { box-shadow: 0 2px 12px rgba(218, 165, 32, 0.55); }
+@keyframes pointBadgeBounce {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(218, 165, 32, 0.35);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 3px 14px rgba(218, 165, 32, 0.55);
+  }
+}
+@keyframes pointBadgeShimmer {
+  0%, 70%, 100% { left: -60%; }
+  85% { left: 120%; }
 }
 
 .mobile-user-point {
