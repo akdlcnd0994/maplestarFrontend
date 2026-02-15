@@ -10,6 +10,7 @@ const TYPE_STYLES = {
 };
 
 const STORAGE_KEY = 'announcement_read_ids';
+const SESSION_KEY = 'announcement_dismissed_session';
 
 const ALLOWED_TAGS = ['b', 'strong', 'em', 'i', 'u', 'br'];
 
@@ -41,6 +42,23 @@ function addLocalReadId(id) {
   }
 }
 
+function getSessionDismissedIds() {
+  try {
+    const stored = sessionStorage.getItem(SESSION_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addSessionDismissedId(id) {
+  const ids = getSessionDismissedIds();
+  if (!ids.includes(id)) {
+    ids.push(id);
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(ids));
+  }
+}
+
 export default function AnnouncementPopup() {
   const { isLoggedIn } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
@@ -49,39 +67,29 @@ export default function AnnouncementPopup() {
 
   const loadAnnouncements = useCallback(async () => {
     try {
-      if (isLoggedIn) {
-        const res = await api.getUnreadAnnouncements();
-        setAnnouncements(res.data || []);
-      } else {
-        const res = await api.getAnnouncements();
-        const allAnnouncements = res.data || [];
-        const readIds = getLocalReadIds();
-        const unread = allAnnouncements.filter(a => !readIds.includes(a.id));
-        setAnnouncements(unread);
-      }
+      const res = await api.getAnnouncements();
+      const allAnnouncements = res.data || [];
+      const permanentReadIds = getLocalReadIds();
+      const sessionDismissedIds = getSessionDismissedIds();
+      const visible = allAnnouncements.filter(
+        a => !permanentReadIds.includes(a.id) && !sessionDismissedIds.includes(a.id)
+      );
+      setAnnouncements(visible);
     } catch {
       // 에러 시 무시
     }
     setLoaded(true);
-  }, [isLoggedIn]);
+  }, []);
 
   useEffect(() => {
     loadAnnouncements();
   }, [loadAnnouncements]);
 
-  const markAsRead = async (announcement) => {
-    if (isLoggedIn) {
-      try {
-        await api.markAnnouncementRead(announcement.id);
-      } catch {}
-    }
-    addLocalReadId(announcement.id);
-  };
-
-  const handleDismiss = async () => {
+  // 이번 세션에서만 닫기 (다음 방문 시 다시 표시)
+  const handleClose = () => {
     const current = announcements[currentIndex];
     if (current) {
-      await markAsRead(current);
+      addSessionDismissedId(current.id);
     }
 
     if (currentIndex < announcements.length - 1) {
@@ -92,12 +100,24 @@ export default function AnnouncementPopup() {
     }
   };
 
-  const handleDismissAll = async () => {
-    for (const ann of announcements) {
-      await markAsRead(ann);
+  // 영구적으로 다시 보지 않기
+  const handleDontShowAgain = async () => {
+    const current = announcements[currentIndex];
+    if (current) {
+      addLocalReadId(current.id);
+      if (isLoggedIn) {
+        try {
+          await api.markAnnouncementRead(current.id);
+        } catch {}
+      }
     }
-    setAnnouncements([]);
-    setCurrentIndex(0);
+
+    if (currentIndex < announcements.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      setAnnouncements([]);
+      setCurrentIndex(0);
+    }
   };
 
   if (!loaded || announcements.length === 0) return null;
@@ -106,7 +126,7 @@ export default function AnnouncementPopup() {
   const typeStyle = TYPE_STYLES[current.type] || TYPE_STYLES.info;
 
   return (
-    <div className="announcement-overlay" onClick={handleDismiss}>
+    <div className="announcement-overlay" onClick={handleClose}>
       <div className="announcement-popup" onClick={(e) => e.stopPropagation()}>
         <div className="announcement-header">
           <span className="announcement-type-badge" style={{ background: typeStyle.color }}>
@@ -118,7 +138,7 @@ export default function AnnouncementPopup() {
           {announcements.length > 1 && (
             <span className="announcement-counter">{currentIndex + 1} / {announcements.length}</span>
           )}
-          <button className="announcement-close" onClick={handleDismiss} aria-label="닫기">&times;</button>
+          <button className="announcement-close" onClick={handleClose} aria-label="닫기">&times;</button>
         </div>
         <h2 className="announcement-title">{current.title}</h2>
         <div
@@ -126,14 +146,12 @@ export default function AnnouncementPopup() {
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(current.content) }}
         />
         <div className="announcement-footer">
-          <button className="announcement-confirm-btn" onClick={handleDismiss}>
-            {currentIndex < announcements.length - 1 ? '다음' : '확인'}
+          <button className="announcement-confirm-btn" onClick={handleClose}>
+            확인
           </button>
-          {announcements.length > 1 && currentIndex < announcements.length - 1 && (
-            <button className="announcement-dismiss-all" onClick={handleDismissAll}>
-              모두 확인
-            </button>
-          )}
+          <button className="announcement-dismiss-all" onClick={handleDontShowAgain}>
+            다음에 보지 않기
+          </button>
         </div>
       </div>
     </div>
