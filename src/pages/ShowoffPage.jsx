@@ -317,6 +317,13 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
         <button className="write-btn" onClick={handleWrite}>글쓰기</button>
       </div>
 
+      {category === 'info' && (
+        <div className="info-board-notice">
+          <span className="info-notice-icon">💡</span>
+          <span>좋아요 <strong>10개 이상</strong> 받으면 <strong className="info-notice-highlight">추천게시물</strong>로 선정되어 작성자에게 <strong className="info-notice-highlight">보너스 포인트</strong>가 지급됩니다!</span>
+        </div>
+      )}
+
       <Modal isOpen={showWrite} onClose={closeModal} title="글쓰기">
         <form className="write-form" onSubmit={handleSubmit}>
           <div className="form-group">

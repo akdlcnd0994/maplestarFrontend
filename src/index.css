@@ -106,6 +106,11 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 .audit-detail { font-size: 12px; color: var(--cream); background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 4px; }
 .audit-detail.muted { opacity: 0.5; }
 
+/* 정보게시판 안내 배너 */
+.info-board-notice { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, rgba(218,165,32,0.15), rgba(224,112,32,0.1)); border: 1px solid rgba(218,165,32,0.3); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; color: var(--cream); font-size: 13px; line-height: 1.5; }
+.info-notice-icon { font-size: 20px; flex-shrink: 0; }
+.info-notice-highlight { color: var(--maple-gold); }
+
 .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .login-link, .register-link { background: none; border: 2px solid var(--wood-light); color: var(--cream); padding: 7px 12px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 20px; white-space: nowrap; }
 .login-link:hover { background: rgba(255,255,255,0.1); border-color: var(--maple-gold); color: var(--maple-gold); }
