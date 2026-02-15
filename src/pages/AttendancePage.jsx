@@ -5,7 +5,7 @@ import { getIconEmoji } from '../components/UserAvatar';
 import Modal from '../components/Modal';
 
 export default function AttendancePage({ setPage }) {
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, checkAuth } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [attendance, setAttendance] = useState([]);
   const [stats, setStats] = useState(null);
@@ -126,6 +126,7 @@ export default function AttendancePage({ setPage }) {
       const res = await api.checkAttendance();
       setTodayChecked(true);
       await loadData();
+      checkAuth();
       alert(`${res.data.message} 연속 ${res.data.streak}일째!`);
     } catch (e) {
       alert(e.message);

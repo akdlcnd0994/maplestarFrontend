@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import { getIconEmoji } from '../components/UserAvatar';
 
 export default function ShowoffPage({ setPage }) {
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, checkAuth } = useAuth();
   const isAdmin = user?.role === 'master' || user?.role === 'submaster';
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -166,6 +166,7 @@ export default function ShowoffPage({ setPage }) {
       setPosts(prev => prev.map(p =>
         p.id === postId ? { ...p, comment_count: (p.comment_count || 0) + 1 } : p
       ));
+      checkAuth();
     } catch (e) {
       alert(e.message);
     }
@@ -227,6 +228,7 @@ export default function ShowoffPage({ setPage }) {
 
       closeModal();
       loadPosts(1, true); // 새 글 작성 후 첫 페이지로
+      checkAuth();
     } catch (e) {
       alert(e.message);
     }
@@ -248,6 +250,7 @@ export default function ShowoffPage({ setPage }) {
           like_count: res.data?.liked ? (p.like_count || 0) + 1 : Math.max((p.like_count || 1) - 1, 0)
         } : p
       ));
+      if (res.data?.pointEarned) checkAuth();
     } catch (e) {
       alert(e.message);
     }

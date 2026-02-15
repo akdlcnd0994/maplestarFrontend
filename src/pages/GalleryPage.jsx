@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import { getIconEmoji } from '../components/UserAvatar';
 
 export default function GalleryPage({ setPage }) {
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, checkAuth } = useAuth();
   const isAdmin = user?.role === 'master' || user?.role === 'submaster';
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -151,6 +151,7 @@ export default function GalleryPage({ setPage }) {
       await api.uploadGallery(uploadData.title, selectedFile, uploadData.description);
       closeUpload();
       loadGallery(1, true); // 새 업로드 후 첫 페이지로
+      checkAuth();
     } catch (e) {
       alert(e.message);
     }
@@ -184,6 +185,7 @@ export default function GalleryPage({ setPage }) {
           }
         }));
       }
+      if (res.data?.pointEarned) checkAuth();
     } catch (e) {
       alert(e.message);
     }
