@@ -12213,11 +12213,11 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 .point-rank-points { font-size: 14px; font-weight: 700; color: #daa520; }
 
 /* 교환소 바로가기 */
-.point-shop-banner {
-  display: flex; align-items: center; justify-content: space-between;
+button.point-shop-banner {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
   background: linear-gradient(135deg, #6b4c35, #8b6914);
-  border-radius: 12px; padding: 18px 20px; margin-top: 24px; cursor: pointer;
-  transition: transform 0.2s; color: #f5e6c8;
+  border: none; border-radius: 12px; padding: 18px 20px; margin-top: 24px; cursor: pointer;
+  transition: transform 0.2s; color: #f5e6c8; text-align: left; font-family: inherit;
 }
 .point-shop-banner:hover { transform: translateY(-2px); }
 .point-shop-banner-text { display: flex; flex-direction: column; gap: 4px; }
@@ -12490,6 +12490,21 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 .audit-log-admin { font-size: 11px; font-weight: 600; }
 .audit-log-date { font-size: 10px; color: #999; }
 
+/* 에러 상태 */
+.error-state {
+  text-align: center; padding: 40px 20px;
+  background: #fef8f0; border: 1px solid #e8dcc8; border-radius: 12px;
+}
+.error-state p {
+  font-size: 14px; color: var(--text-medium); margin: 0 0 16px;
+}
+.retry-btn {
+  padding: 10px 24px; background: linear-gradient(135deg, #4a3728, #6b4c35);
+  color: #f5e6c8; border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.retry-btn:hover { opacity: 0.9; }
+
 /* ==================== 반응형 (모바일) ==================== */
 @media (max-width: 768px) {
   .point-daily-grid { grid-template-columns: 1fr; }
@@ -12499,10 +12514,19 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   .shop-admin-item { flex-wrap: wrap; }
   .announce-admin-item { flex-direction: column; align-items: flex-start; }
   .announce-admin-actions { width: 100%; justify-content: flex-end; }
+  .point-tabs, .shop-tabs { flex-wrap: wrap; }
+  .point-transaction-item { flex-direction: column; gap: 6px; }
+  .point-tx-right { text-align: left; }
+  .point-ranking-item { padding: 10px 12px; }
+  .point-rank-points { font-size: 13px; }
 }
 
 @media (max-width: 480px) {
   .shop-item-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .point-balance-amount { font-size: 28px; }
   .point-balance-stats { gap: 20px; }
+  .point-tab, .shop-tab { font-size: 12px; padding: 8px 10px; }
+  .point-ranking-item { flex-wrap: wrap; gap: 4px; }
+  .point-rank-user { flex: 1; min-width: 0; }
+  .point-rank-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 }

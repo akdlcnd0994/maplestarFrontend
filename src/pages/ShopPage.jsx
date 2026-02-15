@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api, getImageUrl } from '../services/api';
+import { formatDateTime } from '../utils/format';
 import Modal from '../components/Modal';
 
 export default function ShopPage({ setPage }) {
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, checkAuth } = useAuth();
   const [items, setItems] = useState([]);
   const [orders, setOrders] = useState([]);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [tab, setTab] = useState('shop');
   const [selectedItem, setSelectedItem] = useState(null);
   const [purchasing, setPurchasing] = useState(false);
@@ -19,6 +21,7 @@ export default function ShopPage({ setPage }) {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const itemRes = await api.getShopItems();
       setItems(itemRes.data || []);
@@ -27,7 +30,7 @@ export default function ShopPage({ setPage }) {
         setBalance(balRes.data?.balance || 0);
       }
     } catch (e) {
-      console.error(e);
+      setError('데이터를 불러오지 못했습니다.');
     }
     setLoading(false);
   };
@@ -55,13 +58,12 @@ export default function ShopPage({ setPage }) {
       setBalance(res.data?.newBalance ?? balance);
       setSelectedItem(null);
       loadData();
+      checkAuth();
     } catch (e) {
       alert(e.message || '구매에 실패했습니다.');
     }
     setPurchasing(false);
   };
-
-  const formatDate = (d) => d ? d.replace('T', ' ').slice(0, 16) : '-';
 
   return (
     <div className="page-content">
@@ -84,11 +86,17 @@ export default function ShopPage({ setPage }) {
 
       {tab === 'shop' && (
         <div className="shop-item-grid">
-          {loading && <div className="loading-text">로딩 중...</div>}
-          {!loading && items.length === 0 && (
+          {loading && <div className="loading">로딩 중...</div>}
+          {error && !loading && (
+            <div className="error-state">
+              <p>{error}</p>
+              <button className="retry-btn" onClick={loadData}>다시 시도</button>
+            </div>
+          )}
+          {!loading && !error && items.length === 0 && (
             <div className="empty-message">등록된 상품이 없습니다.</div>
           )}
-          {items.map(item => (
+          {!loading && !error && items.map(item => (
             <div key={item.id} className={`shop-item-card ${item.stock <= 0 ? 'sold-out' : ''}`} onClick={() => {
               if (item.stock > 0 && isLoggedIn) setSelectedItem(item);
             }}>
@@ -124,7 +132,7 @@ export default function ShopPage({ setPage }) {
               </div>
               <div className="shop-order-right">
                 <span className="shop-order-price">-{order.total_price.toLocaleString()}P</span>
-                <span className="shop-order-date">{formatDate(order.created_at)}</span>
+                <span className="shop-order-date">{formatDateTime(order.created_at)}</span>
               </div>
             </div>
           ))}

@@ -62,7 +62,12 @@ class ApiClient {
       headers,
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('서버 응답을 처리할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    }
 
     if (!data.success) {
       // 세션 만료 처리

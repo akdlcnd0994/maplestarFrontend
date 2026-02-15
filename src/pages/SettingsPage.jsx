@@ -13,10 +13,11 @@ export default function SettingsPage({ setPage, guildLogo, setGuildLogo }) {
 
   const isAdmin = user?.role === 'master' || user?.role === 'submaster';
 
-  if (!isLoggedIn) {
-    setPage('login');
-    return null;
-  }
+  useEffect(() => {
+    if (!isLoggedIn) setPage('login');
+  }, [isLoggedIn, setPage]);
+
+  if (!isLoggedIn) return null;
 
   const tabs = [
     { id: 'profile', label: '프로필 설정' },

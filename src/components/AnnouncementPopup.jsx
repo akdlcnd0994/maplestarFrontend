@@ -11,6 +11,19 @@ const TYPE_STYLES = {
 
 const STORAGE_KEY = 'announcement_read_ids';
 
+const ALLOWED_TAGS = ['b', 'strong', 'em', 'i', 'u', 'br'];
+
+function sanitizeHtml(html) {
+  return html
+    .replace(/\r\n/g, '\n')
+    .replace(/\n/g, '<br/>')
+    .replace(/<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g, (match, tag) => {
+      const lower = tag.toLowerCase();
+      if (ALLOWED_TAGS.includes(lower)) return match.replace(/\s+[a-z]+=["'][^"']*["']/gi, '');
+      return '';
+    });
+}
+
 function getLocalReadIds() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -110,7 +123,7 @@ export default function AnnouncementPopup() {
         <h2 className="announcement-title">{current.title}</h2>
         <div
           className="announcement-content"
-          dangerouslySetInnerHTML={{ __html: current.content.replace(/\r\n/g, '\n').replace(/\n/g, '<br/>') }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(current.content) }}
         />
         <div className="announcement-footer">
           <button className="announcement-confirm-btn" onClick={handleDismiss}>
