@@ -40,11 +40,11 @@ export default function MainPage({ setPage, guildLogo, setSelectedNotice, setSel
 
   const quickMenus = [
     { id: 'notice', title: '공지사항', desc: '길드 소식 확인', page: 'notice' },
-    { id: 'board', title: '게시판', desc: '자유 게시판', page: 'showoff' },
+    { id: 'board', title: '자유게시판', desc: '자유 게시판', page: 'showoff' },
+    { id: 'info', title: '정보게시판', desc: '정보 공유', page: 'info' },
     { id: 'gallery', title: '갤러리', desc: '스크린샷 모음', page: 'gallery' },
     { id: 'schedule', title: '운동회 일정', desc: '이벤트 스케줄', page: 'schedule' },
     { id: 'members', title: '길드원', desc: '멤버 목록', page: 'members' },
-    { id: 'alliance', title: '연합 길드', desc: '연합 길드 목록', page: 'alliance' },
   ];
 
   const formatDate = (dateStr) => {

@@ -62,7 +62,9 @@ export default function App() {
       case 'schedule':
         return <SchedulePage {...pageProps} />;
       case 'showoff':
-        return <ShowoffPage {...pageProps} />;
+        return <ShowoffPage {...pageProps} category="showoff" />;
+      case 'info':
+        return <ShowoffPage {...pageProps} category="info" />;
       case 'gallery':
         return <GalleryPage {...pageProps} />;
       case 'members':

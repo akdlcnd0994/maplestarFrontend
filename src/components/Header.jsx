@@ -4,10 +4,37 @@ import { getImageUrl } from '../services/api';
 import NotificationBell from './NotificationBell';
 import StyledName from './StyledName';
 
+const navStructure = [
+  { id: 'main', label: '홈' },
+  { id: 'notice', label: '공지사항' },
+  { label: '커뮤니티', children: [
+    { id: 'gallery', label: '갤러리' },
+    { id: 'showoff', label: '자유게시판' },
+    { id: 'info', label: '정보게시판' },
+  ]},
+  { label: '미니게임', children: [
+    { id: 'games', label: '미니게임' },
+    { id: 'scroll', label: '주문서' },
+    { id: 'incubator', label: '부화기' },
+  ]},
+  { id: 'schedule', label: '운동회일정' },
+  { label: '길드', children: [
+    { id: 'members', label: '길드원' },
+    { id: 'alliance', label: '연합길드' },
+  ]},
+  { id: 'attendance', label: '출석체크' },
+  { label: '포인트', children: [
+    { id: 'point', label: '포인트' },
+    { id: 'roulette', label: '룰렛' },
+    { id: 'shop', label: '교환소' },
+  ]},
+];
+
 export default function Header({ page, setPage, guildLogo }) {
   const { user, isLoggedIn, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pointPopup, setPointPopup] = useState(null);
+  const [openMobileGroup, setOpenMobileGroup] = useState(null);
   const prevPointRef = useRef(null);
 
   // 포인트 변화 감지 → 플로팅 "+N" 팝업
@@ -20,23 +47,6 @@ export default function Header({ page, setPage, guildLogo }) {
     }
     prevPointRef.current = currentPoint;
   }, [user?.point_balance]);
-
-  const navItems = [
-    { id: 'main', label: '홈' },
-    { id: 'notice', label: '공지사항' },
-    { id: 'showoff', label: '게시판' },
-    { id: 'gallery', label: '갤러리' },
-    { id: 'games', label: '미니게임' },
-    { id: 'scroll', label: '주문서' },
-    { id: 'incubator', label: '부화기' },
-    { id: 'schedule', label: '운동회일정' },
-    { id: 'members', label: '길드원' },
-    { id: 'attendance', label: '출석체크' },
-    { id: 'alliance', label: '연합길드' },
-    { id: 'point', label: '포인트' },
-    { id: 'roulette', label: '룰렛' },
-    { id: 'shop', label: '교환소' },
-  ];
 
   // 페이지 변경 시 모바일 메뉴 닫기
   useEffect(() => {
@@ -65,6 +75,12 @@ export default function Header({ page, setPage, guildLogo }) {
     setMobileMenuOpen(false);
   };
 
+  const isGroupActive = (children) => children.some(c => c.id === page);
+
+  const toggleMobileGroup = (label) => {
+    setOpenMobileGroup(prev => prev === label ? null : label);
+  };
+
   return (
     <>
       <header className="main-header">
@@ -90,15 +106,34 @@ export default function Header({ page, setPage, guildLogo }) {
           </div>
 
           <nav className="main-nav">
-            {navItems.map(nav => (
-              <button
-                key={nav.id}
-                className={page === nav.id ? 'active' : ''}
-                onClick={() => setPage(nav.id)}
-              >
-                {nav.label}
-              </button>
-            ))}
+            {navStructure.map((nav, i) =>
+              nav.children ? (
+                <div key={i} className={`nav-dropdown ${isGroupActive(nav.children) ? 'active' : ''}`}>
+                  <button className={`nav-dropdown-btn ${isGroupActive(nav.children) ? 'active' : ''}`}>
+                    {nav.label}<span className="nav-arrow">▾</span>
+                  </button>
+                  <div className="nav-dropdown-menu">
+                    {nav.children.map(child => (
+                      <button
+                        key={child.id}
+                        className={page === child.id ? 'active' : ''}
+                        onClick={() => setPage(child.id)}
+                      >
+                        {child.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <button
+                  key={nav.id}
+                  className={page === nav.id ? 'active' : ''}
+                  onClick={() => setPage(nav.id)}
+                >
+                  {nav.label}
+                </button>
+              )
+            )}
           </nav>
 
           <div className="header-actions">
@@ -202,16 +237,40 @@ export default function Header({ page, setPage, guildLogo }) {
 
         {/* 모바일 네비게이션 */}
         <nav className="mobile-nav">
-          {navItems.map(nav => (
-            <button
-              key={nav.id}
-              className={`mobile-nav-item ${page === nav.id ? 'active' : ''}`}
-              onClick={() => handleNavClick(nav.id)}
-            >
-              <span className="mobile-nav-icon">●</span>
-              <span className="mobile-nav-label">{nav.label}</span>
-            </button>
-          ))}
+          {navStructure.map((nav, i) =>
+            nav.children ? (
+              <div key={i} className="mobile-nav-group">
+                <button
+                  className={`mobile-nav-group-header ${isGroupActive(nav.children) ? 'active' : ''} ${openMobileGroup === nav.label ? 'open' : ''}`}
+                  onClick={() => toggleMobileGroup(nav.label)}
+                >
+                  <span className="mobile-nav-icon">●</span>
+                  <span className="mobile-nav-label">{nav.label}</span>
+                  <span className={`mobile-nav-arrow ${openMobileGroup === nav.label ? 'open' : ''}`}>▾</span>
+                </button>
+                <div className={`mobile-nav-group-items ${openMobileGroup === nav.label ? 'open' : ''}`}>
+                  {nav.children.map(child => (
+                    <button
+                      key={child.id}
+                      className={`mobile-nav-item mobile-nav-child ${page === child.id ? 'active' : ''}`}
+                      onClick={() => handleNavClick(child.id)}
+                    >
+                      <span className="mobile-nav-label">{child.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <button
+                key={nav.id}
+                className={`mobile-nav-item ${page === nav.id ? 'active' : ''}`}
+                onClick={() => handleNavClick(nav.id)}
+              >
+                <span className="mobile-nav-icon">●</span>
+                <span className="mobile-nav-label">{nav.label}</span>
+              </button>
+            )
+          )}
         </nav>
 
         {/* 모바일 하단 액션 */}

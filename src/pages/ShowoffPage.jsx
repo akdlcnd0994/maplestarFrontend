@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import { getIconEmoji } from '../components/UserAvatar';
 import StyledName, { ProfileFrame } from '../components/StyledName';
 
-export default function ShowoffPage({ setPage }) {
+export default function ShowoffPage({ setPage, category = 'showoff' }) {
   const { user, isLoggedIn, checkAuth } = useAuth();
   const isAdmin = user?.role === 'master' || user?.role === 'submaster';
   const [posts, setPosts] = useState([]);
@@ -34,7 +34,7 @@ export default function ShowoffPage({ setPage }) {
 
   useEffect(() => {
     loadPosts(1, true);
-  }, []);
+  }, [category]);
 
   useEffect(() => {
     if (!showWrite) return;
@@ -96,7 +96,7 @@ export default function ShowoffPage({ setPage }) {
 
     try {
       const res = await api.getPosts({
-        category: 'showoff',
+        category,
         page,
         limit: pagination.limit
       });
@@ -218,7 +218,7 @@ export default function ShowoffPage({ setPage }) {
     setSubmitting(true);
     try {
       const res = await api.createPost({
-        category: 'showoff',
+        category,
         title: writeData.title,
         content: writeData.content,
       });
@@ -313,7 +313,7 @@ export default function ShowoffPage({ setPage }) {
     <div className="page-content board-page">
       <div className="page-header">
         <button className="back-btn" onClick={() => setPage('main')}>← 돌아가기</button>
-        <h1>게시판</h1>
+        <h1>{category === 'info' ? '정보게시판' : '자유게시판'}</h1>
         <button className="write-btn" onClick={handleWrite}>글쓰기</button>
       </div>
 

@@ -45,10 +45,35 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
-.main-nav { display: flex; gap: 2px; flex-shrink: 0; }
-.main-nav button { background: transparent; border: none; color: var(--cream); padding: 7px 10px; font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 6px; transition: all 0.2s; white-space: nowrap; }
-.main-nav button:hover { background: rgba(255,255,255,0.1); color: var(--maple-gold); }
-.main-nav button.active { background: linear-gradient(180deg, var(--maple-orange) 0%, var(--maple-red) 100%); }
+.main-nav { display: flex; gap: 2px; flex-shrink: 0; align-items: center; }
+.main-nav > button { background: transparent; border: none; color: var(--cream); padding: 7px 10px; font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 6px; transition: all 0.2s; white-space: nowrap; }
+.main-nav > button:hover { background: rgba(255,255,255,0.1); color: var(--maple-gold); }
+.main-nav > button.active { background: linear-gradient(180deg, var(--maple-orange) 0%, var(--maple-red) 100%); }
+
+/* 데스크탑 드롭다운 */
+.nav-dropdown { position: relative; }
+.nav-dropdown-btn { background: transparent; border: none; color: var(--cream); padding: 7px 10px; font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 6px; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 3px; }
+.nav-dropdown-btn:hover { background: rgba(255,255,255,0.1); color: var(--maple-gold); }
+.nav-dropdown-btn.active { background: linear-gradient(180deg, var(--maple-orange) 0%, var(--maple-red) 100%); }
+.nav-arrow { font-size: 10px; opacity: 0.7; transition: transform 0.2s; }
+.nav-dropdown:hover .nav-arrow { transform: rotate(180deg); }
+
+.nav-dropdown-menu { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); min-width: 120px; background: var(--wood-dark); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); padding: 6px 0; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; z-index: 150; }
+.nav-dropdown:hover .nav-dropdown-menu { opacity: 1; visibility: visible; }
+.nav-dropdown-menu button { display: block; width: 100%; background: none; border: none; color: var(--cream); padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; text-align: left; white-space: nowrap; transition: background 0.15s; }
+.nav-dropdown-menu button:hover { background: rgba(255,255,255,0.1); color: var(--maple-gold); }
+.nav-dropdown-menu button.active { color: var(--maple-gold); background: rgba(224,112,32,0.2); }
+
+/* 모바일 네비 그룹 (아코디언) */
+.mobile-nav-group { border-bottom: 1px solid rgba(255,255,255,0.05); }
+.mobile-nav-group-header { display: flex; align-items: center; gap: 12px; width: 100%; padding: 13px 18px; background: none; border: none; color: var(--cream); font-size: 15px; cursor: pointer; transition: background 0.2s; text-align: left; }
+.mobile-nav-group-header:hover { background: rgba(255,255,255,0.08); }
+.mobile-nav-group-header.active { color: var(--maple-gold); }
+.mobile-nav-arrow { margin-left: auto; font-size: 12px; opacity: 0.6; transition: transform 0.25s; }
+.mobile-nav-arrow.open { transform: rotate(180deg); }
+.mobile-nav-group-items { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+.mobile-nav-group-items.open { max-height: 200px; }
+.mobile-nav-child { padding-left: 44px !important; font-size: 14px !important; }
 
 .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .login-link, .register-link { background: none; border: 2px solid var(--wood-light); color: var(--cream); padding: 7px 12px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 20px; white-space: nowrap; }
