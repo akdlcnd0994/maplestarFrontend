@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import { getIconEmoji } from '../components/UserAvatar';
 
 export default function SchedulePage({ setPage }) {
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, checkAuth } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -64,6 +64,7 @@ export default function SchedulePage({ setPage }) {
       const res = await api.joinEvent(eventId);
       alert(res.data.message);
       loadEvents();
+      checkAuth();
       if (showParticipants === eventId) {
         loadParticipants(eventId);
       }

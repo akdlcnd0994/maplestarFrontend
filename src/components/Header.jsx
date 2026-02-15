@@ -1,10 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../services/api';
 
 export default function Header({ page, setPage, guildLogo }) {
   const { user, isLoggedIn, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pointPopup, setPointPopup] = useState(null);
+  const prevPointRef = useRef(null);
+
+  // 포인트 변화 감지 → 플로팅 "+N" 팝업
+  useEffect(() => {
+    const currentPoint = user?.point_balance ?? 0;
+    if (prevPointRef.current !== null && currentPoint > prevPointRef.current) {
+      const delta = currentPoint - prevPointRef.current;
+      setPointPopup({ amount: delta, key: Date.now() });
+      setTimeout(() => setPointPopup(null), 1800);
+    }
+    prevPointRef.current = currentPoint;
+  }, [user?.point_balance]);
 
   const navItems = [
     { id: 'main', label: '홈' },
@@ -88,8 +101,15 @@ export default function Header({ page, setPage, guildLogo }) {
           <div className="header-actions">
             {isLoggedIn ? (
               <div className="user-menu">
-                <span className="header-point-badge" onClick={() => setPage('point')}>
-                  {(user?.point_balance || 0).toLocaleString()}P
+                <span className="point-badge-wrapper">
+                  <span className={`header-point-badge ${pointPopup ? 'point-bump' : ''}`} onClick={() => setPage('point')}>
+                    {(user?.point_balance || 0).toLocaleString()}P
+                  </span>
+                  {pointPopup && (
+                    <span key={pointPopup.key} className="point-float-popup">
+                      +{pointPopup.amount}
+                    </span>
+                  )}
                 </span>
                 <span className="user-name">{user?.character_name || user?.username}</span>
                 <button className="settings-btn" onClick={() => setPage('settings')}>⚙️</button>
@@ -152,8 +172,15 @@ export default function Header({ page, setPage, guildLogo }) {
                   {user?.role === 'master' ? '길드마스터' :
                    user?.role === 'submaster' ? '부마스터' : '길드원'}
                 </span>
-                <span className="mobile-user-point" onClick={() => handleNavClick('point')}>
-                  {(user?.point_balance || 0).toLocaleString()}P
+                <span className="point-badge-wrapper">
+                  <span className={`mobile-user-point ${pointPopup ? 'point-bump' : ''}`} onClick={() => handleNavClick('point')}>
+                    {(user?.point_balance || 0).toLocaleString()}P
+                  </span>
+                  {pointPopup && (
+                    <span key={pointPopup.key} className="point-float-popup mobile">
+                      +{pointPopup.amount}
+                    </span>
+                  )}
                 </span>
               </div>
             </div>

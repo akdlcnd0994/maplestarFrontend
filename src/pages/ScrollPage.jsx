@@ -75,7 +75,7 @@ const getRandomStatChange = (isAmazing = false) => {
 };
 
 export default function ScrollPage({ setPage }) {
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn, user, checkAuth } = useAuth();
   const [activeTab, setActiveTab] = useState('glove'); // glove, potential, white, chaos
   const [showCompetition, setShowCompetition] = useState(false);
   const [volume, setVolume] = useState(() => {
@@ -177,7 +177,7 @@ export default function ScrollPage({ setPage }) {
 
 // 노가다 목장갑 시뮬레이터 (기존)
 function GloveSimulator({ volume = 0.5 }) {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, checkAuth } = useAuth();
   const [slots, setSlots] = useState(WORK_GLOVE.slots);
   const [usedSlots, setUsedSlots] = useState(0);
   const [successCount, setSuccessCount] = useState(0);
@@ -249,6 +249,7 @@ function GloveSimulator({ volume = 0.5 }) {
       });
       setSaved(true);
       loadRankings();
+      checkAuth();
     } catch (e) {
       console.error('Failed to save record:', e);
       alert('기록 저장에 실패했습니다.');
@@ -934,7 +935,7 @@ const CHAOS_BASE_STATS = {
 };
 
 function ChaosScrollSimulator({ volume = 0.5 }) {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, checkAuth } = useAuth();
   const [upgradeCount, setUpgradeCount] = useState(5);
   const [stats, setStats] = useState({ ...CHAOS_BASE_STATS });
   const [statChanges, setStatChanges] = useState({ atk: 0, matk: 0, str: 0, dex: 0, int: 0, luk: 0 }); // 변화량 추적
@@ -1161,6 +1162,7 @@ function ChaosScrollSimulator({ volume = 0.5 }) {
 
       setIsSaved(true);
       loadRankings(rankingUpgrade);
+      checkAuth();
     } catch (e) {
       console.error('Failed to save record:', e);
       alert('기록 등록에 실패했습니다.');
@@ -1449,6 +1451,7 @@ function ChaosScrollSimulator({ volume = 0.5 }) {
 // 경쟁 모드
 // ========================================
 function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
+  const { checkAuth } = useAuth();
   const [stats, setStats] = useState({ ...CHAOS_BASE_STATS });
   const [statChanges, setStatChanges] = useState({ atk: 0, matk: 0, str: 0, dex: 0, int: 0, luk: 0 });
   const [remainingSlots, setRemainingSlots] = useState(5);
@@ -1644,6 +1647,7 @@ function CompetitionMode({ onBack, volume = 0.5, setVolume }) {
       ]);
       setIsSaved(true);
       loadData(); // 랭킹 새로고침
+      checkAuth();
     } catch (e) {
       console.error('Failed to save record:', e);
       alert('기록 등록에 실패했습니다.');

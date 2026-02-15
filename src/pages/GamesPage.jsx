@@ -4,7 +4,7 @@ import { api, getImageUrl } from '../services/api';
 import { getIconEmoji } from '../components/UserAvatar';
 
 export default function GamesPage({ setPage }) {
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn, user, checkAuth } = useAuth();
   const [selectedGame, setSelectedGame] = useState(null);
   const [rankings, setRankings] = useState({});
   const [myScores, setMyScores] = useState({});
@@ -33,6 +33,11 @@ export default function GamesPage({ setPage }) {
     } catch (e) {
       console.error('Failed to load my scores:', e);
     }
+  };
+
+  const handleScoreUpdate = () => {
+    loadMyScores();
+    checkAuth();
   };
 
   if (!isLoggedIn) {
@@ -226,16 +231,16 @@ export default function GamesPage({ setPage }) {
         )
       ) : (
         <div className="game-container">
-          {selectedGame === 'reaction' && <ReactionGame user={user} onScoreUpdate={loadMyScores} />}
-          {selectedGame === 'memory' && <MemoryGame user={user} onScoreUpdate={loadMyScores} />}
-          {selectedGame === 'typing' && <TypingGame user={user} onScoreUpdate={loadMyScores} />}
-          {selectedGame === 'number' && <NumberGame user={user} onScoreUpdate={loadMyScores} />}
-          {selectedGame === 'game2048' && <Game2048 user={user} onScoreUpdate={loadMyScores} onBack={() => setSelectedGame(null)} />}
-          {selectedGame === 'aimtrainer' && <AimTrainerGame user={user} onScoreUpdate={loadMyScores} />}
-          {selectedGame === 'colortest' && <ColorTestGame user={user} onScoreUpdate={loadMyScores} />}
-          {selectedGame === 'snake' && <SnakeGame user={user} onScoreUpdate={loadMyScores} />}
-          {selectedGame === 'flappy' && <FlappyGame user={user} onScoreUpdate={loadMyScores} />}
-          {selectedGame === 'pattern' && <PatternGame user={user} onScoreUpdate={loadMyScores} />}
+          {selectedGame === 'reaction' && <ReactionGame user={user} onScoreUpdate={handleScoreUpdate} />}
+          {selectedGame === 'memory' && <MemoryGame user={user} onScoreUpdate={handleScoreUpdate} />}
+          {selectedGame === 'typing' && <TypingGame user={user} onScoreUpdate={handleScoreUpdate} />}
+          {selectedGame === 'number' && <NumberGame user={user} onScoreUpdate={handleScoreUpdate} />}
+          {selectedGame === 'game2048' && <Game2048 user={user} onScoreUpdate={handleScoreUpdate} onBack={() => setSelectedGame(null)} />}
+          {selectedGame === 'aimtrainer' && <AimTrainerGame user={user} onScoreUpdate={handleScoreUpdate} />}
+          {selectedGame === 'colortest' && <ColorTestGame user={user} onScoreUpdate={handleScoreUpdate} />}
+          {selectedGame === 'snake' && <SnakeGame user={user} onScoreUpdate={handleScoreUpdate} />}
+          {selectedGame === 'flappy' && <FlappyGame user={user} onScoreUpdate={handleScoreUpdate} />}
+          {selectedGame === 'pattern' && <PatternGame user={user} onScoreUpdate={handleScoreUpdate} />}
           {selectedGame === 'ladder' && <LadderGame />}
           {selectedGame === 'roulette' && <RouletteGame />}
           {selectedGame === 'teammaker' && <TeamMakerGame />}
@@ -371,8 +376,8 @@ function ReactionGame({ user, onScoreUpdate }) {
           if (res.data?.isNewRecord) {
             setBestTime(time);
             setRank(res.data.rank);
-            onScoreUpdate?.();
           }
+          onScoreUpdate?.();
         } catch (e) {
           console.error('Failed to submit score:', e);
         }
@@ -551,8 +556,8 @@ function MemoryGame({ user, onScoreUpdate }) {
             if (res.data?.isNewRecord) {
               setBestScore(finalScore);
               setRank(res.data.rank);
-              onScoreUpdate?.();
             }
+            onScoreUpdate?.();
           } catch (e) {
             console.error('Failed to submit score:', e);
           }
@@ -749,8 +754,8 @@ function TypingGame({ user, onScoreUpdate }) {
       if (res.data?.isNewRecord) {
         setBestScore(finalScore);
         setRank(res.data.rank);
-        onScoreUpdate?.();
       }
+      onScoreUpdate?.();
     } catch (e) {
       console.error('Failed to submit score:', e);
     }
@@ -870,8 +875,8 @@ function NumberGame({ user, onScoreUpdate }) {
         if (res.data?.isNewRecord) {
           setBestAttempts(newAttempts);
           setRank(res.data.rank);
-          onScoreUpdate?.();
         }
+        onScoreUpdate?.();
       } catch (e) {
         console.error('Failed to submit score:', e);
       }
@@ -1754,8 +1759,8 @@ function Game2048({ user, onScoreUpdate, onBack }) {
       if (res.data?.isNewRecord) {
         setBestScore(finalScore);
         setRank(res.data.rank);
-        onScoreUpdate?.();
       }
+      onScoreUpdate?.();
     } catch (e) {
       console.error('Failed to submit score:', e);
     }
@@ -1962,8 +1967,8 @@ function AimTrainerGame({ user, onScoreUpdate }) {
       if (res.data?.isNewRecord) {
         setBestScore(finalScore);
         setRank(res.data.rank);
-        onScoreUpdate?.();
       }
+      onScoreUpdate?.();
     } catch (e) {
       console.error('Failed to submit score:', e);
     }
@@ -2126,8 +2131,8 @@ function ColorTestGame({ user, onScoreUpdate }) {
       if (res.data?.isNewRecord) {
         setBestLevel(level);
         setRank(res.data.rank);
-        onScoreUpdate?.();
       }
+      onScoreUpdate?.();
     } catch (e) {
       console.error('Failed to submit score:', e);
     }
@@ -2340,8 +2345,8 @@ function SnakeGame({ user, onScoreUpdate }) {
       if (res.data?.isNewRecord) {
         setBestScore(finalScore);
         setRank(res.data.rank);
-        onScoreUpdate?.();
       }
+      onScoreUpdate?.();
     } catch (e) {
       console.error('Failed to submit score:', e);
     }
@@ -2578,8 +2583,8 @@ function FlappyGame({ user, onScoreUpdate }) {
       if (res.data?.isNewRecord) {
         setBestScore(finalScore);
         setRank(res.data.rank);
-        onScoreUpdate?.();
       }
+      onScoreUpdate?.();
     } catch (e) {
       console.error('Failed to submit score:', e);
     }
@@ -2791,8 +2796,8 @@ function PatternGame({ user, onScoreUpdate }) {
       if (res.data?.isNewRecord) {
         setBestLevel(finalLevel);
         setRank(res.data.rank);
-        onScoreUpdate?.();
       }
+      onScoreUpdate?.();
     } catch (e) {
       console.error('Failed to submit score:', e);
     }

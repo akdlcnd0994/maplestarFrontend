@@ -78,7 +78,7 @@ const getItemIcon = (item) => {
 };
 
 export default function IncubatorPage() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, checkAuth } = useAuth();
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('simulatorVolume');
     return saved ? parseFloat(saved) : 0.3;
@@ -167,6 +167,7 @@ export default function IncubatorPage() {
       setResultItem(lastItem);
       setDailyCount(dailyTotal);
       setState('result');
+      checkAuth();
 
       // 인벤토리 새로고침
       const inventoryRes = await api.getIncubatorInventory();
@@ -215,6 +216,7 @@ export default function IncubatorPage() {
       setResultItems(allItems || [lastItem]);
       setDailyCount(dailyTotal);
       setState('result');
+      checkAuth();
 
       // 슬라이드 애니메이션 시작
       if (allItems && allItems.length > 1) {
