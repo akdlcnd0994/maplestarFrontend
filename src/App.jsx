@@ -109,7 +109,7 @@ export default function App() {
 
       <Header page={page} setPage={setPage} guildLogo={guildLogo} />
 
-      {isLoggedIn && <AnnouncementPopup />}
+      <AnnouncementPopup />
 
       <main className="main-content">{renderPage()}</main>
 
