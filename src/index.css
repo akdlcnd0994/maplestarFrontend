@@ -2049,7 +2049,14 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 @media (max-width: 768px) {
   .main-nav { display: none; }
   .mobile-menu-btn { display: flex; }
-  .header-actions { display: none; }
+  .header-actions { display: flex; }
+  .header-actions .user-menu .user-name,
+  .header-actions .user-menu .settings-btn,
+  .header-actions .user-menu .user-btn,
+  .header-actions .login-link,
+  .header-actions .register-link { display: none; }
+  .header-actions .user-menu { gap: 0; }
+  .header-point-badge { font-size: 11px; padding: 4px 10px; }
 
   /* 홈페이지 프리미엄 모바일 */
   .hero-section.premium { padding: 50px 24px 40px; margin-bottom: 24px; border-radius: 24px; }
@@ -12087,27 +12094,47 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 /* ==================== 포인트 시스템 ==================== */
 
 .header-point-badge {
-  background: linear-gradient(135deg, #daa520, #b8860b);
+  background: linear-gradient(135deg, #f5c842, #daa520, #b8860b);
   color: #fff;
-  padding: 3px 10px;
-  border-radius: 12px;
+  padding: 4px 12px;
+  border-radius: 14px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: opacity 0.2s;
+  transition: all 0.25s;
+  box-shadow: 0 2px 8px rgba(218, 165, 32, 0.35);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  position: relative;
+  animation: pointBadgePulse 3s ease-in-out infinite;
 }
-.header-point-badge:hover { opacity: 0.85; }
+.header-point-badge:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 14px rgba(218, 165, 32, 0.5);
+  background: linear-gradient(135deg, #ffd54f, #f5c842, #daa520);
+}
+.header-point-badge:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 1px 4px rgba(218, 165, 32, 0.3);
+}
+@keyframes pointBadgePulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(218, 165, 32, 0.35); }
+  50% { box-shadow: 0 2px 12px rgba(218, 165, 32, 0.55); }
+}
 
 .mobile-user-point {
   display: inline-block;
-  background: linear-gradient(135deg, #daa520, #b8860b);
+  background: linear-gradient(135deg, #f5c842, #daa520, #b8860b);
   color: #fff;
-  padding: 2px 8px;
-  border-radius: 10px;
+  padding: 3px 10px;
+  border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
   margin-top: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(218, 165, 32, 0.3);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  transition: all 0.25s;
   cursor: pointer;
 }
 
