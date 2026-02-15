@@ -255,6 +255,23 @@ class ApiClient {
     });
   }
 
+  async getGalleryComments(galleryId) {
+    return this.request(`/gallery/${galleryId}/comments`);
+  }
+
+  async createGalleryComment(galleryId, content) {
+    return this.request(`/gallery/${galleryId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async deleteGalleryComment(galleryId, commentId) {
+    return this.request(`/gallery/${galleryId}/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Attendance
   async getAttendance() {
     return this.request('/attendance');

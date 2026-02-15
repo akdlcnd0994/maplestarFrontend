@@ -8,10 +8,10 @@ import { getIconEmoji } from './UserAvatar';
 const navStructure = [
   { id: 'main', label: '홈' },
   { id: 'notice', label: '공지사항' },
-  { label: '커뮤니티', children: [
+  { label: '커뮤니티', isNew: true, children: [
     { id: 'gallery', label: '갤러리' },
     { id: 'showoff', label: '자유게시판' },
-    { id: 'info', label: '정보게시판' },
+    { id: 'info', label: '정보게시판', isNew: true },
   ]},
   { label: '미니게임', children: [
     { id: 'games', label: '미니게임' },
@@ -24,10 +24,10 @@ const navStructure = [
     { id: 'alliance', label: '연합길드' },
   ]},
   { id: 'attendance', label: '출석체크' },
-  { label: '포인트', children: [
-    { id: 'point', label: '포인트' },
-    { id: 'roulette', label: '룰렛' },
-    { id: 'shop', label: '교환소' },
+  { label: '포인트', isNew: true, children: [
+    { id: 'point', label: '포인트', isNew: true },
+    { id: 'roulette', label: '룰렛', isNew: true },
+    { id: 'shop', label: '교환소', isNew: true },
   ]},
 ];
 
@@ -111,7 +111,7 @@ export default function Header({ page, setPage, guildLogo }) {
               nav.children ? (
                 <div key={i} className={`nav-dropdown ${isGroupActive(nav.children) ? 'active' : ''}`}>
                   <button className={`nav-dropdown-btn ${isGroupActive(nav.children) ? 'active' : ''}`}>
-                    {nav.label}<span className="nav-arrow">▾</span>
+                    {nav.label}{nav.isNew && <span className="nav-new-badge">N</span>}<span className="nav-arrow">▾</span>
                   </button>
                   <div className="nav-dropdown-menu">
                     {nav.children.map(child => (
@@ -120,7 +120,7 @@ export default function Header({ page, setPage, guildLogo }) {
                         className={page === child.id ? 'active' : ''}
                         onClick={() => setPage(child.id)}
                       >
-                        {child.label}
+                        {child.label}{child.isNew && <span className="nav-new-badge">N</span>}
                       </button>
                     ))}
                   </div>
@@ -271,7 +271,7 @@ export default function Header({ page, setPage, guildLogo }) {
                   onClick={() => toggleMobileGroup(nav.label)}
                 >
                   <span className="mobile-nav-icon">●</span>
-                  <span className="mobile-nav-label">{nav.label}</span>
+                  <span className="mobile-nav-label">{nav.label}{nav.isNew && <span className="nav-new-badge">N</span>}</span>
                   <span className={`mobile-nav-arrow ${openMobileGroup === nav.label ? 'open' : ''}`}>▾</span>
                 </button>
                 <div className={`mobile-nav-group-items ${openMobileGroup === nav.label ? 'open' : ''}`}>
@@ -281,7 +281,7 @@ export default function Header({ page, setPage, guildLogo }) {
                       className={`mobile-nav-item mobile-nav-child ${page === child.id ? 'active' : ''}`}
                       onClick={() => handleNavClick(child.id)}
                     >
-                      <span className="mobile-nav-label">{child.label}</span>
+                      <span className="mobile-nav-label">{child.label}{child.isNew && <span className="nav-new-badge">N</span>}</span>
                     </button>
                   ))}
                 </div>

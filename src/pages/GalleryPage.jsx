@@ -19,6 +19,9 @@ export default function GalleryPage({ setPage }) {
   const [lightbox, setLightbox] = useState({ open: false, image: null, data: null });
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({ id: null, title: '', description: '' });
+  const [comments, setComments] = useState({});
+  const [newComment, setNewComment] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
   const fileRef = useRef(null);
 
   // 페이지네이션 상태
@@ -198,6 +201,7 @@ export default function GalleryPage({ setPage }) {
       image: getImageUrl(img.image_url),
       data: img
     });
+    loadGalleryComments(img.id);
   };
 
   const closeUpload = () => {
@@ -210,6 +214,61 @@ export default function GalleryPage({ setPage }) {
   const clearImage = () => {
     setSelectedFile(null);
     setPreview(null);
+  };
+
+  const loadGalleryComments = async (galleryId) => {
+    if (comments[galleryId]) return;
+    setLoadingComments(true);
+    try {
+      const res = await api.getGalleryComments(galleryId);
+      setComments(prev => ({ ...prev, [galleryId]: res.data || [] }));
+    } catch (e) {
+      console.error('Failed to load comments:', e);
+    }
+    setLoadingComments(false);
+  };
+
+  const handleAddComment = async (galleryId) => {
+    if (!newComment.trim()) return;
+    if (!isLoggedIn) { alert('로그인이 필요합니다.'); return; }
+    try {
+      await api.createGalleryComment(galleryId, newComment);
+      setNewComment('');
+      const res = await api.getGalleryComments(galleryId);
+      setComments(prev => ({ ...prev, [galleryId]: res.data || [] }));
+      setImages(prev => prev.map(img =>
+        img.id === galleryId ? { ...img, comment_count: (img.comment_count || 0) + 1 } : img
+      ));
+      if (lightbox.open && lightbox.data?.id === galleryId) {
+        setLightbox(prev => ({
+          ...prev,
+          data: { ...prev.data, comment_count: (prev.data.comment_count || 0) + 1 }
+        }));
+      }
+      checkAuth();
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const handleDeleteComment = async (galleryId, commentId) => {
+    if (!confirm('정말 이 댓글을 삭제하시겠습니까?')) return;
+    try {
+      await api.deleteGalleryComment(galleryId, commentId);
+      const res = await api.getGalleryComments(galleryId);
+      setComments(prev => ({ ...prev, [galleryId]: res.data || [] }));
+      setImages(prev => prev.map(img =>
+        img.id === galleryId ? { ...img, comment_count: Math.max((img.comment_count || 1) - 1, 0) } : img
+      ));
+      if (lightbox.open && lightbox.data?.id === galleryId) {
+        setLightbox(prev => ({
+          ...prev,
+          data: { ...prev.data, comment_count: Math.max((prev.data.comment_count || 1) - 1, 0) }
+        }));
+      }
+    } catch (e) {
+      alert(e.message);
+    }
   };
 
   const formatTime = (dateStr) => {
@@ -410,6 +469,51 @@ export default function GalleryPage({ setPage }) {
                   </>
                 )}
               </div>
+              {/* 댓글 섹션 */}
+              <div className="gallery-comments-section">
+                <h4>댓글 {lightbox.data.comment_count || 0}</h4>
+                <div className="gallery-comments-list">
+                  {loadingComments ? (
+                    <div className="comments-loading">댓글 로딩 중...</div>
+                  ) : (comments[lightbox.data.id] || []).length === 0 ? (
+                    <div className="no-comments">아직 댓글이 없습니다.</div>
+                  ) : (
+                    (comments[lightbox.data.id] || []).map((c) => (
+                      <div key={c.id} className="comment-item gallery-comment-item">
+                        <ProfileFrame user={c.user} size="sm">
+                          <div className={`comment-avatar ${c.user?.default_icon && !c.user?.profile_image ? 'has-icon' : ''}`}>
+                            {c.user?.profile_image ? (
+                              <img src={getImageUrl(c.user.profile_image)} alt="" style={{ transform: `scale(${c.user?.profile_zoom || 1})` }} />
+                            ) : getIconEmoji(c.user?.default_icon)}
+                          </div>
+                        </ProfileFrame>
+                        <div className="comment-body">
+                          <div className="comment-header">
+                            <StyledName user={c.user} showTitle={true} className="comment-author" />
+                            <span className="comment-time">{formatTime(c.created_at)}</span>
+                            {(isAdmin || c.user_id === user?.id) && (
+                              <button className="comment-delete-btn" onClick={() => handleDeleteComment(lightbox.data.id, c.id)}>삭제</button>
+                            )}
+                          </div>
+                          <p className="comment-text">{c.content}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {isLoggedIn && (
+                  <div className="comment-form gallery-comment-form">
+                    <input
+                      type="text"
+                      placeholder="댓글을 입력하세요"
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddComment(lightbox.data.id)}
+                    />
+                    <button onClick={() => handleAddComment(lightbox.data.id)}>등록</button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           <div className="lightbox-hint">ESC 또는 바깥 클릭으로 닫기</div>
@@ -446,6 +550,7 @@ export default function GalleryPage({ setPage }) {
                       >
                         ❤️ {img.like_count || 0}
                       </button>
+                      <span className="gallery-comment-count">💬 {img.comment_count || 0}</span>
                       {(isAdmin || (user && Number(img.user_id) === Number(user.id))) && (
                         <>
                           <button className="gallery-edit-btn" onClick={(e) => openEditModal(img, e)}>

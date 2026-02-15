@@ -504,7 +504,7 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
                                   </ProfileFrame>
                                   <div className="comment-body">
                                     <div className="comment-header">
-                                      <StyledName user={c.user} showTitle={false} className="comment-author" />
+                                      <StyledName user={c.user} showTitle={true} className="comment-author" />
                                       {c.user?.role === 'honorary' && (
                                         <span className="user-badge honorary small">명예</span>
                                       )}

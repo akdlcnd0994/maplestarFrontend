@@ -32,26 +32,21 @@ export default function AttendanceWidget() {
     setLoading(false);
   };
 
+  if (checked) return null;
+
   return (
     <div className="attendance-widget">
       <div className="attendance-header">
         <span>📅 출석체크</span>
         <span className="attendance-date">{serverToday ? `${parseInt(serverToday.split('-')[1])}/${parseInt(serverToday.split('-')[2])}` : ''}</span>
       </div>
-      {checked ? (
-        <div className="attendance-done">
-          <span>✓</span>
-          <p>출석 완료!</p>
-        </div>
-      ) : (
-        <button
-          className="attendance-btn"
-          onClick={handleCheck}
-          disabled={loading}
-        >
-          {loading ? '처리중...' : '출석하기'}
-        </button>
-      )}
+      <button
+        className="attendance-btn"
+        onClick={handleCheck}
+        disabled={loading}
+      >
+        {loading ? '처리중...' : '출석하기'}
+      </button>
     </div>
   );
 }

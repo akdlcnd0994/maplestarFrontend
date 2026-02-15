@@ -219,7 +219,7 @@ export default function PointPage({ setPage }) {
                     <StyledName user={r} />
                     {r.job && <span className="point-rank-job">{r.job}</span>}
                   </div>
-                  <div className="point-rank-points">{r.total_earned?.toLocaleString()}P</div>
+                  <div className="point-rank-points">{r.balance?.toLocaleString()}P</div>
                 </div>
               ))}
             </div>
