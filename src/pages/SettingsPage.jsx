@@ -333,14 +333,16 @@ function CustomizeTab({ user, checkAuth }) {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [itemsRes, myRes] = await Promise.all([
-        api.getCustomizationItems(),
-        api.getMyCustomizations(),
-      ]);
+      const itemsRes = await api.getCustomizationItems();
       setItems(itemsRes.data || []);
+    } catch (e) {
+      console.error('Failed to load items:', e);
+    }
+    try {
+      const myRes = await api.getMyCustomizations();
       setMyItems(myRes.data || []);
     } catch (e) {
-      console.error('Failed to load customization data:', e);
+      console.error('Failed to load my customizations:', e);
     }
     setLoading(false);
   };
