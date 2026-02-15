@@ -324,6 +324,7 @@ function CustomizeTab({ user, checkAuth }) {
   const [purchasing, setPurchasing] = useState(null);
   const [equipping, setEquipping] = useState(null);
   const [activeCategory, setActiveCategory] = useState('name_color');
+  const [activeRarity, setActiveRarity] = useState('all');
 
   useEffect(() => {
     loadData();
@@ -345,9 +346,17 @@ function CustomizeTab({ user, checkAuth }) {
   };
 
   const categories = [
-    { id: 'name_color', label: '닉네임 색상', icon: '🎨' },
-    { id: 'frame', label: '프로필 프레임', icon: '🖼️' },
-    { id: 'title', label: '칭호', icon: '🏷️' },
+    { id: 'name_color', label: '닉네임 색상' },
+    { id: 'frame', label: '프로필 프레임' },
+    { id: 'title', label: '칭호' },
+  ];
+
+  const rarities = [
+    { id: 'all', label: '전체' },
+    { id: 'common', label: '일반' },
+    { id: 'rare', label: '레어' },
+    { id: 'epic', label: '에픽' },
+    { id: 'legendary', label: '전설' },
   ];
 
   const isOwned = (itemId) => myItems.some(m => m.item_id === itemId);
@@ -381,10 +390,9 @@ function CustomizeTab({ user, checkAuth }) {
 
   const getRarityColor = (rarity) => {
     switch (rarity) {
-      case 'legendary': return '#ff6b00';
+      case 'legendary': return '#ffa500';
       case 'epic': return '#a855f7';
       case 'rare': return '#3b82f6';
-      case 'uncommon': return '#22c55e';
       default: return '#9ca3af';
     }
   };
@@ -394,32 +402,33 @@ function CustomizeTab({ user, checkAuth }) {
       case 'legendary': return '전설';
       case 'epic': return '에픽';
       case 'rare': return '레어';
-      case 'uncommon': return '고급';
       default: return '일반';
     }
   };
 
-  const filteredItems = items.filter(item => item.type === activeCategory);
+  const filteredItems = items
+    .filter(item => item.type === activeCategory)
+    .filter(item => activeRarity === 'all' || item.rarity === activeRarity);
 
   const renderPreview = (item) => {
     if (item.type === 'name_color') {
-      const previewUser = { ...user, active_name_color: item.value, active_title: user?.active_title };
+      const previewUser = { ...user, active_name_color: item.value };
       return <StyledName user={previewUser} showTitle={false} />;
     }
     if (item.type === 'frame') {
       return (
         <ProfileFrame user={{ active_frame: item.value }} size="sm">
-          <span className="customize-frame-preview-icon">👤</span>
+          <span className="customize-frame-preview-icon">&#9632;</span>
         </ProfileFrame>
       );
     }
     if (item.type === 'title') {
-      return <span className="user-title-badge preview">{item.value}</span>;
+      return <span className={`user-title-badge preview title-${item.rarity}`}>{item.value}</span>;
     }
     return null;
   };
 
-  if (loading) return <div className="loading">로딩 중...</div>;
+  if (loading) return <div className="loading">...</div>;
 
   return (
     <div className="customize-tab">
@@ -430,7 +439,7 @@ function CustomizeTab({ user, checkAuth }) {
             {user?.profile_image ? (
               <img src={getImageUrl(user.profile_image)} alt="" style={{ transform: `scale(${user.profile_zoom || 1})` }} />
             ) : (
-              <span className="avatar-default-large">{getIconEmoji(user?.default_icon) || '👤'}</span>
+              <span className="avatar-default-large">{getIconEmoji(user?.default_icon) || '&#9632;'}</span>
             )}
           </ProfileFrame>
           <div className="customize-my-name">
@@ -444,23 +453,34 @@ function CustomizeTab({ user, checkAuth }) {
           <button
             key={cat.id}
             className={`customize-cat-btn ${activeCategory === cat.id ? 'active' : ''}`}
-            onClick={() => setActiveCategory(cat.id)}
+            onClick={() => { setActiveCategory(cat.id); setActiveRarity('all'); }}
           >
-            <span className="cat-icon">{cat.icon}</span>
-            <span className="cat-label">{cat.label}</span>
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="customize-rarity-filter">
+        {rarities.map(r => (
+          <button
+            key={r.id}
+            className={`rarity-filter-btn ${activeRarity === r.id ? 'active' : ''} rarity-${r.id}`}
+            onClick={() => setActiveRarity(r.id)}
+          >
+            {r.label}
           </button>
         ))}
       </div>
 
       <div className="customize-items-grid">
         {filteredItems.length === 0 ? (
-          <div className="empty-message">아이템이 없습니다.</div>
+          <div className="empty-message">해당하는 아이템이 없습니다.</div>
         ) : (
           filteredItems.map(item => {
             const owned = isOwned(item.id);
             const equipped = isEquipped(item.id);
             return (
-              <div key={item.id} className={`customize-item-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`}>
+              <div key={item.id} className={`customize-item-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''} rarity-${item.rarity}`}>
                 <div className="customize-item-header">
                   <span className="customize-item-rarity" style={{ color: getRarityColor(item.rarity) }}>
                     {getRarityLabel(item.rarity)}
@@ -481,7 +501,7 @@ function CustomizeTab({ user, checkAuth }) {
                       onClick={() => handlePurchase(item.id)}
                       disabled={purchasing === item.id}
                     >
-                      {purchasing === item.id ? '구매중...' : `${item.price}P 구매`}
+                      {purchasing === item.id ? '...' : `${item.price}P`}
                     </button>
                   ) : equipped ? (
                     <button
@@ -489,7 +509,7 @@ function CustomizeTab({ user, checkAuth }) {
                       onClick={() => handleEquip(item.id, false)}
                       disabled={equipping === item.id}
                     >
-                      {equipping === item.id ? '처리중...' : '해제'}
+                      {equipping === item.id ? '...' : '해제'}
                     </button>
                   ) : (
                     <button
@@ -497,7 +517,7 @@ function CustomizeTab({ user, checkAuth }) {
                       onClick={() => handleEquip(item.id, true)}
                       disabled={equipping === item.id}
                     >
-                      {equipping === item.id ? '처리중...' : '장착'}
+                      {equipping === item.id ? '...' : '장착'}
                     </button>
                   )}
                 </div>

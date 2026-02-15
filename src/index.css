@@ -12817,6 +12817,9 @@ button.point-shop-banner {
 /* ========================================
    StyledName & ProfileFrame
 ======================================== */
+/* ========================================
+   StyledName & Effects
+======================================== */
 .styled-name {
   display: inline-flex;
   align-items: center;
@@ -12825,22 +12828,55 @@ button.point-shop-banner {
 .styled-name-text {
   font-weight: 600;
 }
+
+/* 칭호 배지 - 등급별 */
 .user-title-badge {
   display: inline-block;
   font-size: 10px;
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  color: #1a1a2e;
+  background: #3a3a4a;
+  color: #bbb;
   margin-right: 4px;
   line-height: 1.4;
   white-space: nowrap;
+  border: 1px solid #4a4a5a;
+}
+.user-title-badge.title-common {
+  background: #3a3a4a;
+  color: #bbb;
+  border-color: #4a4a5a;
+}
+.user-title-badge.title-rare {
+  background: linear-gradient(135deg, #1a3a6e, #1e4d8a);
+  color: #7cb9ff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.2);
+}
+.user-title-badge.title-epic {
+  background: linear-gradient(135deg, #3a1a5e, #4a2272);
+  color: #c084fc;
+  border-color: #a855f7;
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.25);
+}
+.user-title-badge.title-legendary {
+  background: linear-gradient(135deg, #5a3a00, #6b4400);
+  color: #ffd700;
+  border-color: #ffa500;
+  box-shadow: 0 0 8px rgba(255, 165, 0, 0.3);
+  animation: titleLegendaryGlow 2.5s ease-in-out infinite;
+}
+@keyframes titleLegendaryGlow {
+  0%, 100% { box-shadow: 0 0 6px rgba(255, 165, 0, 0.2); }
+  50% { box-shadow: 0 0 12px rgba(255, 215, 0, 0.5); }
 }
 .user-title-badge.preview {
   font-size: 12px;
   padding: 2px 8px;
 }
+
+/* 닉네임 색상 - 레인보우 */
 .rainbow-name .styled-name-text {
   background: linear-gradient(90deg, #ff0000, #ff7700, #ffdd00, #00ff00, #0077ff, #7700ff, #ff00ff);
   background-size: 200% auto;
@@ -12854,13 +12890,86 @@ button.point-shop-banner {
   100% { background-position: 200% center; }
 }
 
-/* Profile Frame */
+/* 닉네임 색상 - 오로라 */
+.aurora-name .styled-name-text {
+  background: linear-gradient(90deg, #00c9ff, #92fe9d, #00c9ff, #f0e68c, #00c9ff);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: auroraShift 5s ease-in-out infinite;
+}
+@keyframes auroraShift {
+  0% { background-position: 0% center; }
+  50% { background-position: 150% center; }
+  100% { background-position: 300% center; }
+}
+
+/* 닉네임 색상 - 홀로그램 */
+.hologram-name .styled-name-text {
+  background: linear-gradient(90deg, #c0c0c0, #e8d5e0, #a8d8ea, #c0c0c0, #e8d5e0);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: hologramShift 3s linear infinite;
+  filter: brightness(1.2) contrast(1.1);
+}
+@keyframes hologramShift {
+  0% { background-position: 0% center; filter: brightness(1.1) hue-rotate(0deg); }
+  50% { background-position: 100% center; filter: brightness(1.3) hue-rotate(30deg); }
+  100% { background-position: 200% center; filter: brightness(1.1) hue-rotate(0deg); }
+}
+
+/* 닉네임 색상 - 인페르노 */
+.inferno-name .styled-name-text {
+  background: linear-gradient(90deg, #ff4500, #ff8c00, #ffd700, #ff4500);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: infernoShift 2s ease-in-out infinite;
+  text-shadow: none;
+}
+@keyframes infernoShift {
+  0%, 100% { background-position: 0% center; filter: brightness(1); }
+  50% { background-position: 100% center; filter: brightness(1.3); }
+}
+
+/* 닉네임 색상 - 갤럭시 */
+.galaxy-name .styled-name-text {
+  background: linear-gradient(90deg, #667eea, #764ba2, #6b8dd6, #8e54e9, #667eea);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: galaxyShift 4s ease-in-out infinite;
+}
+@keyframes galaxyShift {
+  0% { background-position: 0% center; }
+  50% { background-position: 150% center; }
+  100% { background-position: 300% center; }
+}
+
+/* 닉네임 색상 - 글로우 공통 */
+.glow-name .styled-name-text {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
+}
+
+/* ========================================
+   Profile Frame - 18종
+======================================== */
 .profile-frame {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   position: relative;
+  overflow: hidden;
 }
 .profile-frame img {
   border-radius: 50%;
@@ -12872,13 +12981,28 @@ button.point-shop-banner {
 .frame-size-md { width: 56px; height: 56px; }
 .frame-size-lg { width: 80px; height: 80px; }
 .frame-none { border: 2px solid #3a3a5c; }
-.frame-gold {
+
+/* Common 프레임 */
+.frame-white {
+  border: 3px solid #e8e8e8;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.15);
+}
+.frame-black {
+  border: 3px solid #2a2a2a;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3), inset 0 0 2px rgba(255, 255, 255, 0.05);
+}
+.frame-wood {
+  border: 3px solid #8b6914;
+  box-shadow: 0 0 6px rgba(139, 105, 20, 0.2);
+}
+.frame-steel {
   border: 3px solid transparent;
-  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #ffd700, #ffaa00, #ffd700);
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #708090, #a8b0b8, #708090);
   background-origin: border-box;
   background-clip: padding-box, border-box;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }
+
+/* Rare 프레임 */
 .frame-silver {
   border: 3px solid transparent;
   background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #c0c0c0, #e8e8e8, #c0c0c0);
@@ -12886,6 +13010,36 @@ button.point-shop-banner {
   background-clip: padding-box, border-box;
   box-shadow: 0 0 8px rgba(192, 192, 192, 0.3);
 }
+.frame-gold {
+  border: 3px solid transparent;
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #ffd700, #ffaa00, #ffd700);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+.frame-rosegold {
+  border: 3px solid transparent;
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #e8a87c, #d4838f, #e8a87c);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 8px rgba(212, 131, 143, 0.3);
+}
+.frame-sakura {
+  border: 3px solid transparent;
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #ffb7c5, #ff69b4, #ffb7c5);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 8px rgba(255, 105, 180, 0.2);
+}
+.frame-ocean {
+  border: 3px solid transparent;
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #0077b6, #00b4d8, #0077b6);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 8px rgba(0, 180, 216, 0.2);
+}
+
+/* Epic 프레임 */
 .frame-neon {
   border: 3px solid transparent;
   background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #00ff88, #00ccff, #8844ff);
@@ -12917,6 +13071,34 @@ button.point-shop-banner {
   background-clip: padding-box, border-box;
   box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
 }
+.frame-lightning {
+  border: 3px solid transparent;
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #ffd700, #448aff, #ffd700);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 10px rgba(68, 138, 255, 0.3);
+  animation: lightningFlash 3s ease-in-out infinite;
+}
+@keyframes lightningFlash {
+  0%, 90%, 100% { box-shadow: 0 0 8px rgba(68, 138, 255, 0.2); }
+  93% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+  96% { box-shadow: 0 0 8px rgba(68, 138, 255, 0.2); }
+  98% { box-shadow: 0 0 16px rgba(255, 215, 0, 0.6); }
+}
+.frame-poison {
+  border: 3px solid transparent;
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #1b5e20, #76ff03, #1b5e20);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 10px rgba(118, 255, 3, 0.25);
+  animation: poisonPulse 2.5s ease-in-out infinite;
+}
+@keyframes poisonPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(118, 255, 3, 0.15); }
+  50% { box-shadow: 0 0 14px rgba(118, 255, 3, 0.4); }
+}
+
+/* Legendary 프레임 */
 .frame-legendary {
   border: 3px solid transparent;
   background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #ff0080, #ff8c00, #ffd700, #00ff88, #0088ff, #8800ff);
@@ -12929,6 +13111,45 @@ button.point-shop-banner {
 @keyframes legendaryFrame {
   0% { background-position: 0, 0% 0%; }
   100% { background-position: 0, 100% 100%; }
+}
+.frame-dragon {
+  border: 3px solid transparent;
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #b71c1c, #ff6f00, #ffd700, #ff6f00, #b71c1c);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100%, 200% 200%;
+  animation: dragonFrame 3s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(183, 28, 28, 0.4);
+}
+@keyframes dragonFrame {
+  0%, 100% { background-position: 0, 0% 50%; box-shadow: 0 0 10px rgba(183, 28, 28, 0.3); }
+  50% { background-position: 0, 100% 50%; box-shadow: 0 0 18px rgba(255, 111, 0, 0.5); }
+}
+.frame-starlight {
+  border: 3px solid transparent;
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #1a237e, #7c4dff, #b388ff, #7c4dff, #1a237e);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100%, 200% 200%;
+  animation: starlightFrame 3.5s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(124, 77, 255, 0.35);
+}
+@keyframes starlightFrame {
+  0%, 100% { background-position: 0, 0% 50%; box-shadow: 0 0 10px rgba(124, 77, 255, 0.2); }
+  50% { background-position: 0, 100% 50%; box-shadow: 0 0 18px rgba(179, 136, 255, 0.5); }
+}
+.frame-bosskiller {
+  border: 3px solid transparent;
+  background-image: linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #880e4f, #e53935, #ff6f00, #e53935, #880e4f);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100%, 200% 200%;
+  animation: bosskillFrame 2s ease-in-out infinite;
+  box-shadow: 0 0 14px rgba(229, 57, 53, 0.4);
+}
+@keyframes bosskillFrame {
+  0%, 100% { background-position: 0, 0% 50%; box-shadow: 0 0 10px rgba(229, 57, 53, 0.3); }
+  50% { background-position: 0, 100% 50%; box-shadow: 0 0 20px rgba(229, 57, 53, 0.7); }
 }
 
 /* ========================================
@@ -13446,8 +13667,47 @@ button.point-shop-banner {
   background: rgba(99, 102, 241, 0.1);
   color: #a0a0ff;
 }
-.cat-icon { font-size: 18px; }
-.cat-label { font-size: 11px; font-weight: 600; }
+.cat-label { font-size: 12px; font-weight: 600; }
+
+/* Rarity Filter */
+.customize-rarity-filter {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.rarity-filter-btn {
+  padding: 4px 12px;
+  border: 1px solid #2a2a4a;
+  background: #1a1a30;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b8baa;
+  transition: all 0.2s;
+}
+.rarity-filter-btn:hover { border-color: #4a4a6a; }
+.rarity-filter-btn.active { border-color: #6366f1; background: rgba(99, 102, 241, 0.15); color: #a0a0ff; }
+.rarity-filter-btn.active.rarity-common { border-color: #6b7280; color: #bbb; background: rgba(107, 114, 128, 0.15); }
+.rarity-filter-btn.active.rarity-rare { border-color: #3b82f6; color: #7cb9ff; background: rgba(59, 130, 246, 0.15); }
+.rarity-filter-btn.active.rarity-epic { border-color: #a855f7; color: #c084fc; background: rgba(168, 85, 247, 0.15); }
+.rarity-filter-btn.active.rarity-legendary { border-color: #ffa500; color: #ffd700; background: rgba(255, 165, 0, 0.15); }
+
+/* Item Card Rarity Borders */
+.customize-item-card.rarity-legendary {
+  border-color: rgba(255, 165, 0, 0.2);
+}
+.customize-item-card.rarity-legendary:hover {
+  border-color: rgba(255, 165, 0, 0.4);
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.1);
+}
+.customize-item-card.rarity-epic {
+  border-color: rgba(168, 85, 247, 0.15);
+}
+.customize-item-card.rarity-epic:hover {
+  border-color: rgba(168, 85, 247, 0.3);
+}
 
 /* Items Grid */
 .customize-items-grid {
