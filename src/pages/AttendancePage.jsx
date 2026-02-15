@@ -38,11 +38,12 @@ export default function AttendancePage({ setPage }) {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    // 월이 변경될 때마다 해당 월의 출석 데이터와 혜택 로드
+    // 월이 변경될 때마다 해당 월의 출석 데이터, 혜택, 랭킹 로드
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
 
     loadBenefits(year, month);
+    loadRanking(year, month);
 
     if (isLoggedIn) {
       loadMonthAttendance(year, month);
@@ -55,11 +56,12 @@ export default function AttendancePage({ setPage }) {
       const month = currentDate.getMonth() + 1;
 
       const [rankingRes, benefitsRes] = await Promise.all([
-        api.getAttendanceRanking().catch(() => ({ data: [] })),
+        api.getAttendanceRanking(year, month).catch(() => ({ data: { ranking: [] } })),
         api.getAttendanceBenefits(year, month).catch(() => ({ data: null })),
       ]);
 
-      setRanking(rankingRes.data || []);
+      const rankData = rankingRes.data;
+      setRanking(rankData?.ranking || rankData || []);
       setBenefits(benefitsRes.data);
 
       if (isLoggedIn) {
@@ -89,6 +91,16 @@ export default function AttendancePage({ setPage }) {
     } catch (e) {
       console.error('Failed to load benefits:', e);
       setBenefits(null);
+    }
+  };
+
+  const loadRanking = async (year, month) => {
+    try {
+      const res = await api.getAttendanceRanking(year, month);
+      const rankData = res.data;
+      setRanking(rankData?.ranking || rankData || []);
+    } catch (e) {
+      console.error('Failed to load ranking:', e);
     }
   };
 
@@ -430,11 +442,11 @@ export default function AttendancePage({ setPage }) {
             </div>
           </div>
 
-          {/* 출석 랭킹 */}
+          {/* 출석 랭킹 (월별) */}
           <div className="ranking-section">
             <div className="section-header">
               <div className="header-line"></div>
-              <h2>출석왕 TOP 10</h2>
+              <h2>{month + 1}월 출석왕 TOP 10</h2>
               <div className="header-line"></div>
             </div>
             <div className="ranking-list">
@@ -457,7 +469,7 @@ export default function AttendancePage({ setPage }) {
                       <span className="rank-name">{r.character_name}</span>
                     </div>
                     <div className="rank-stats">
-                      <span className="total">{r.total_checks}<small>일</small></span>
+                      <span className="total">{r.month_checks}<small>일</small></span>
                       <span className="streak"><span className="streak-icon"></span>{r.current_streak}</span>
                     </div>
                   </div>

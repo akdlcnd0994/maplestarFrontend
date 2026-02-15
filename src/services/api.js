@@ -274,8 +274,9 @@ class ApiClient {
     return this.request('/attendance/stats');
   }
 
-  async getAttendanceRanking() {
-    return this.request('/attendance/ranking');
+  async getAttendanceRanking(year, month) {
+    const params = year && month ? `?year=${year}&month=${month}` : '';
+    return this.request(`/attendance/ranking${params}`);
   }
 
   async getAttendanceBenefits(year, month) {
