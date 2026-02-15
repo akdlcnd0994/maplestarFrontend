@@ -104,7 +104,7 @@ export default function IncubatorPage() {
   const [error, setError] = useState(null);
   const [competitionBoost, setCompetitionBoost] = useState(false); // 경쟁모드 부스트
 
-  const BASE_DAILY_LIMIT = 3000;
+  const BASE_DAILY_LIMIT = 100;
   const totalLimit = BASE_DAILY_LIMIT + bonusHatches;
   const ITEMS_PER_PAGE = 24; // 6줄 x 4칸
 
