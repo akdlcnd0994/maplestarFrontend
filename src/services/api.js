@@ -209,6 +209,15 @@ class ApiClient {
     });
   }
 
+  async uploadInlineImage(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.request('/posts/upload-image', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   async getComments(postId) {
     return this.request(`/posts/${postId}/comments`);
   }

@@ -4,6 +4,116 @@ import { useAuth } from '../context/AuthContext';
 import { getIconEmoji } from '../components/UserAvatar';
 import { formatDate } from '../utils/format';
 import StyledName from '../components/StyledName';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceDot
+} from 'recharts';
+
+// 레벨 변화 커스텀 툴팁
+function LevelTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  return (
+    <div style={{
+      background: '#fff',
+      border: '1px solid #e5e7eb',
+      borderRadius: 10,
+      padding: '8px 12px',
+      fontSize: 12,
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    }}>
+      <div style={{ color: '#888', marginBottom: 2 }}>{d.userdate} {d.usertime}시</div>
+      <div style={{ fontWeight: 700, color: '#2563eb' }}>Lv.{d.userlevel}</div>
+      <div style={{ color: '#666' }}>{d.userrank ? `${d.userrank}위` : ''}</div>
+    </div>
+  );
+}
+
+// 레벨 변화 차트 컴포넌트
+function LevelChart({ data, loading }) {
+  if (loading) {
+    return (
+      <div className="level-chart-section">
+        <div className="level-chart-title">레벨 변화</div>
+        <div className="level-chart-empty">불러오는 중...</div>
+      </div>
+    );
+  }
+
+  if (!data || data.length < 2) {
+    return (
+      <div className="level-chart-section">
+        <div className="level-chart-title">레벨 변화</div>
+        <div className="level-chart-empty">랭킹 데이터 없음</div>
+      </div>
+    );
+  }
+
+  // 레벨업 지점 (이전 데이터보다 레벨이 오른 포인트)
+  const levelUpPoints = data.filter((d, i) => i > 0 && d.userlevel > data[i - 1].userlevel);
+
+  // y축 범위 (여유 있게)
+  const levels = data.map(d => d.userlevel);
+  const minLevel = Math.min(...levels);
+  const maxLevel = Math.max(...levels);
+  const range = maxLevel - minLevel;
+  const yMin = range === 0 ? minLevel - 1 : minLevel - Math.max(1, Math.floor(range * 0.1));
+  const yMax = range === 0 ? maxLevel + 1 : maxLevel + Math.max(1, Math.ceil(range * 0.1));
+
+  // x축 라벨: 너무 많으면 간격 줄임
+  const tickInterval = data.length > 20 ? Math.floor(data.length / 10) : 0;
+
+  return (
+    <div className="level-chart-section">
+      <div className="level-chart-title">레벨 변화 (30일)</div>
+      <div className="level-chart-container">
+        <ResponsiveContainer width="100%" height={560}>
+          <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 10, fill: '#999' }}
+              angle={-45}
+              textAnchor="end"
+              interval={tickInterval}
+              height={60}
+            />
+            <YAxis
+              domain={[yMin, yMax]}
+              tick={{ fontSize: 10, fill: '#999' }}
+              tickCount={5}
+              allowDecimals={false}
+            />
+            <Tooltip content={<LevelTooltip />} />
+            <Line
+              type="monotone"
+              dataKey="userlevel"
+              stroke="#2563eb"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 5, fill: '#2563eb' }}
+            />
+            {levelUpPoints.map((point, idx) => (
+              <ReferenceDot
+                key={idx}
+                x={point.label}
+                y={point.userlevel}
+                r={5}
+                fill="#16a34a"
+                stroke="#fff"
+                strokeWidth={2}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      {levelUpPoints.length > 0 && (
+        <div style={{ fontSize: 11, color: '#16a34a', marginTop: 4 }}>
+          ● 레벨업 {levelUpPoints.length}회 (30일 내)
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MembersPage({ setPage, selectedMember, setSelectedMember }) {
   const { user } = useAuth();
@@ -15,6 +125,9 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
   const [stats, setStats] = useState({ total: 0, online: 0, honorary: 0 });
   const [showDetail, setShowDetail] = useState(null);
   const [updatingRole, setUpdatingRole] = useState(false);
+  const [levelHistory, setLevelHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [selectedAlt, setSelectedAlt] = useState(null); // null = 본캐 기준
 
   const isMaster = user?.role === 'master';
 
@@ -46,6 +159,46 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
       setSelectedMember?.(null);
     }
   }, [selectedMember]);
+
+  // 모달 열릴 때 본캐 히스토리 로드 + selectedAlt 초기화
+  useEffect(() => {
+    if (showDetail) {
+      setSelectedAlt(null);
+      loadLevelHistory(showDetail.character_name);
+    } else {
+      setSelectedAlt(null);
+      setLevelHistory([]);
+    }
+  }, [showDetail]);
+
+  const loadLevelHistory = async (username) => {
+    if (!username) return;
+    setHistoryLoading(true);
+    setLevelHistory([]);
+    try {
+      const res = await api.request(`/ranking/history/${encodeURIComponent(username)}?days=30`);
+      const data = res.data || [];
+      // 차트용 데이터 변환
+      const chartData = data.map(row => ({
+        ...row,
+        label: `${row.userdate.slice(5)} ${row.usertime}시`,
+      }));
+      setLevelHistory(chartData);
+    } catch (e) {
+      console.error('히스토리 로드 실패:', e);
+    }
+    setHistoryLoading(false);
+  };
+
+  const handleAltClick = (alt) => {
+    setSelectedAlt(alt);
+    loadLevelHistory(alt.username);
+  };
+
+  const handleBackToMain = () => {
+    setSelectedAlt(null);
+    loadLevelHistory(showDetail.character_name);
+  };
 
   const loadMembers = async () => {
     try {
@@ -190,8 +343,10 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
                   onClick={() => setShowDetail(m)}
                 >
                   <div className="member-avatar-box">
-                    <div className="avatar-placeholder">
-                      {m.profile_image ? (
+                    <div className={`avatar-placeholder${m.avatar_img ? ' game-avatar' : ''}`}>
+                      {m.avatar_img ? (
+                        <img src={m.avatar_img} alt="" className="ranking-avatar" />
+                      ) : m.profile_image ? (
                         <img src={getImageUrl(m.profile_image)} alt="" style={{ transform: `scale(${m.profile_zoom || 1})` }} />
                       ) : (
                         <span>{getIconEmoji(m.default_icon)}</span>
@@ -243,97 +398,161 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
           <div className="modal-content member-detail-modal premium" onClick={e => e.stopPropagation()}>
             <button className="modal-close-btn" onClick={() => setShowDetail(null)}></button>
             <div className="member-detail-body premium">
-              <div className="member-detail-avatar premium">
-                <div className="avatar-large">
-                  {showDetail.profile_image ? (
-                    <img src={getImageUrl(showDetail.profile_image)} alt="" style={{ transform: `scale(${showDetail.profile_zoom || 1})` }} />
-                  ) : (
-                    <span>{getIconEmoji(showDetail.default_icon)}</span>
+              {/* 좌측: 프로필 정보 */}
+              <div className="member-detail-left">
+                {/* 부캐 보는 중일 때 본캐 복귀 버튼 */}
+                {selectedAlt && (
+                  <button className="alt-back-btn" onClick={handleBackToMain}>
+                    ← {showDetail.character_name}
+                  </button>
+                )}
+
+                <div className="member-detail-avatar premium">
+                  <div className={`avatar-large${(selectedAlt?.avatar_img || showDetail.avatar_img) ? ' game-avatar' : ''}`}>
+                    {selectedAlt ? (
+                      selectedAlt.avatar_img
+                        ? <img src={selectedAlt.avatar_img} alt="" className="ranking-avatar" />
+                        : <span>{getIconEmoji(showDetail.default_icon)}</span>
+                    ) : showDetail.avatar_img ? (
+                      <img src={showDetail.avatar_img} alt="" className="ranking-avatar" />
+                    ) : showDetail.profile_image ? (
+                      <img src={getImageUrl(showDetail.profile_image)} alt="" style={{ transform: `scale(${showDetail.profile_zoom || 1})` }} />
+                    ) : (
+                      <span>{getIconEmoji(showDetail.default_icon)}</span>
+                    )}
+                  </div>
+                  {!selectedAlt && (
+                    <div className={`online-badge ${showDetail.is_online ? 'online' : ''}`}>
+                      <span className="badge-dot"></span>
+                      <span>{showDetail.is_online ? '접속중' : '오프라인'}</span>
+                    </div>
                   )}
                 </div>
-                <div className={`online-badge ${showDetail.is_online ? 'online' : ''}`}>
-                  <span className="badge-dot"></span>
-                  <span>{showDetail.is_online ? '접속중' : '오프라인'}</span>
-                </div>
-              </div>
 
-              <div className="member-detail-name">
-                <h2><StyledName user={showDetail} /></h2>
-                <div className="member-detail-badges">
-                  <span className={`role-tag role-${showDetail.role || 'member'}`}>
-                    {roles[showDetail.role]?.label || '길드원'}
-                  </span>
-                  {showDetail.alliance_name && (
-                    <span className={`guild-tag ${showDetail.is_main_guild ? 'main' : 'alliance'}`}>
-                      {showDetail.alliance_emblem} {showDetail.alliance_name}
+                <div className="member-detail-name">
+                  <h2>
+                    {selectedAlt
+                      ? <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{selectedAlt.username}</span>
+                      : <StyledName user={showDetail} />
+                    }
+                  </h2>
+                  <div className="member-detail-badges">
+                    <span className={`role-tag role-${showDetail.role || 'member'}`}>
+                      {roles[showDetail.role]?.label || '길드원'}
                     </span>
+                    {showDetail.alliance_name && (
+                      <span className={`guild-tag ${showDetail.is_main_guild ? 'main' : 'alliance'}`}>
+                        {showDetail.alliance_emblem} {showDetail.alliance_name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="member-detail-stats">
+                  <div className="detail-stat">
+                    <span className="stat-label">직업</span>
+                    <span className="stat-value">
+                      {selectedAlt ? selectedAlt.userjob : (showDetail.ranking_job || showDetail.job || '-')}
+                    </span>
+                  </div>
+                  <div className="detail-stat">
+                    <span className="stat-label">레벨</span>
+                    <span className="stat-value">
+                      Lv.{selectedAlt ? selectedAlt.userlevel : (showDetail.ranking_level || showDetail.level || 0)}
+                    </span>
+                  </div>
+                  {(selectedAlt ? selectedAlt.userrank : showDetail.ranking_rank) && (
+                    <div className="detail-stat">
+                      <span className="stat-label">랭킹</span>
+                      <span className="stat-value">
+                        {(selectedAlt ? selectedAlt.userrank : showDetail.ranking_rank)}위
+                      </span>
+                    </div>
+                  )}
+                  {!selectedAlt && showDetail.discord && (
+                    <div className="detail-stat full">
+                      <span className="stat-label">Discord</span>
+                      <span className="stat-value">{showDetail.discord}</span>
+                    </div>
+                  )}
+                  {!selectedAlt && (
+                    <div className="detail-stat full">
+                      <span className="stat-label">가입일</span>
+                      <span className="stat-value">{formatDate(showDetail.created_at) || '-'}</span>
+                    </div>
                   )}
                 </div>
-              </div>
 
-              <div className="member-detail-stats">
-                <div className="detail-stat">
-                  <span className="stat-label">직업</span>
-                  <span className="stat-value">{showDetail.ranking_job || showDetail.job || '-'}</span>
-                </div>
-                <div className="detail-stat">
-                  <span className="stat-label">레벨</span>
-                  <span className="stat-value">Lv.{showDetail.ranking_level || showDetail.level || 0}</span>
-                </div>
-                {showDetail.ranking_rank && (
-                  <div className="detail-stat">
-                    <span className="stat-label">랭킹</span>
-                    <span className="stat-value">{showDetail.ranking_rank}위</span>
+                {/* 같은 계정 캐릭터 목록 - 본캐 + 부캐 모두 표시 */}
+                {showDetail.alt_characters?.length > 0 && (
+                  <div className="member-detail-alts">
+                    <span className="alts-section-label">같은 계정 캐릭터</span>
+                    <div className="alts-list">
+                      {/* 본캐 항목 */}
+                      {showDetail.character_name && (
+                        <div
+                          className={`alt-item clickable${!selectedAlt ? ' active' : ''}`}
+                          onClick={handleBackToMain}
+                        >
+                          {showDetail.avatar_img && (
+                            <img src={showDetail.avatar_img} alt="" className="alt-item-avatar" />
+                          )}
+                          <div className="alt-item-info-col">
+                            <span className="alt-item-name">{showDetail.character_name}</span>
+                            <span className="alt-item-info">
+                              {showDetail.ranking_job || showDetail.job} Lv.{showDetail.ranking_level || showDetail.level}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      {/* 부캐 목록 */}
+                      {showDetail.alt_characters.map((alt, idx) => (
+                        <div
+                          key={idx}
+                          className={`alt-item clickable${selectedAlt?.username === alt.username ? ' active' : ''}`}
+                          onClick={() => handleAltClick(alt)}
+                        >
+                          {alt.avatar_img && (
+                            <img src={alt.avatar_img} alt="" className="alt-item-avatar" />
+                          )}
+                          <div className="alt-item-info-col">
+                            <span className="alt-item-name">{alt.username}</span>
+                            <span className="alt-item-info">{alt.userjob} Lv.{alt.userlevel}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
-                {showDetail.discord && (
-                  <div className="detail-stat full">
-                    <span className="stat-label">Discord</span>
-                    <span className="stat-value">{showDetail.discord}</span>
+
+                {/* 길마만 역할 변경 가능 (자기 자신 제외) */}
+                {isMaster && showDetail.role !== 'master' && showDetail.id !== user?.id && (
+                  <div className="role-edit-section premium">
+                    <span className="section-label">등급 설정</span>
+                    <div className="role-buttons">
+                      <button
+                        className={`role-btn ${showDetail.role === 'submaster' ? 'active' : ''}`}
+                        onClick={() => handleRoleChange(showDetail.id, 'submaster')}
+                        disabled={updatingRole || showDetail.role === 'submaster'}
+                      >
+                        부마스터
+                      </button>
+                      <button
+                        className={`role-btn ${showDetail.role === 'member' ? 'active' : ''}`}
+                        onClick={() => handleRoleChange(showDetail.id, 'member')}
+                        disabled={updatingRole || showDetail.role === 'member'}
+                      >
+                        길드원
+                      </button>
+                    </div>
                   </div>
                 )}
-                <div className="detail-stat full">
-                  <span className="stat-label">가입일</span>
-                  <span className="stat-value">{formatDate(showDetail.created_at) || '-'}</span>
-                </div>
               </div>
 
-              {showDetail.alt_characters?.length > 0 && (
-                <div className="member-detail-alts">
-                  <span className="alts-section-label">같은 계정 캐릭터</span>
-                  <div className="alts-list">
-                    {showDetail.alt_characters.map((alt, idx) => (
-                      <div key={idx} className="alt-item">
-                        <span className="alt-item-name">{alt.username}</span>
-                        <span className="alt-item-info">{alt.userjob} Lv.{alt.userlevel}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 길마만 역할 변경 가능 (자기 자신 제외) */}
-              {isMaster && showDetail.role !== 'master' && showDetail.id !== user?.id && (
-                <div className="role-edit-section premium">
-                  <span className="section-label">등급 설정</span>
-                  <div className="role-buttons">
-                    <button
-                      className={`role-btn ${showDetail.role === 'submaster' ? 'active' : ''}`}
-                      onClick={() => handleRoleChange(showDetail.id, 'submaster')}
-                      disabled={updatingRole || showDetail.role === 'submaster'}
-                    >
-                      부마스터
-                    </button>
-                    <button
-                      className={`role-btn ${showDetail.role === 'member' ? 'active' : ''}`}
-                      onClick={() => handleRoleChange(showDetail.id, 'member')}
-                      disabled={updatingRole || showDetail.role === 'member'}
-                    >
-                      길드원
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* 우측: 레벨 변화 차트 */}
+              <div className="member-detail-right">
+                <LevelChart data={levelHistory} loading={historyLoading} />
+              </div>
             </div>
           </div>
         </div>

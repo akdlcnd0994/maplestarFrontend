@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { api, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
 import { getIconEmoji } from '../components/UserAvatar';
 import StyledName, { ProfileFrame } from '../components/StyledName';
+import RichTextEditor from '../components/RichTextEditor';
 
 export default function ShowoffPage({ setPage, category = 'showoff' }) {
   const { user, isLoggedIn, checkAuth } = useAuth();
@@ -13,16 +15,12 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showWrite, setShowWrite] = useState(false);
   const [writeData, setWriteData] = useState({ title: '', content: '' });
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [previews, setPreviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [lightbox, setLightbox] = useState({ open: false, images: [], index: 0 });
   const [expandedPost, setExpandedPost] = useState(null);
   const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState({});
-  const fileRef = useRef(null);
-
   // 페이지네이션 상태
   const [pagination, setPagination] = useState({
     page: 1,
@@ -35,34 +33,6 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
   useEffect(() => {
     loadPosts(1, true);
   }, [category]);
-
-  useEffect(() => {
-    if (!showWrite) return;
-
-    const handlePaste = (e) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-
-      const imageFiles = [];
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.startsWith('image/')) {
-          const file = items[i].getAsFile();
-          if (file) {
-            const namedFile = new File([file], `screenshot_${Date.now()}_${i}.png`, { type: file.type });
-            imageFiles.push(namedFile);
-          }
-        }
-      }
-
-      if (imageFiles.length > 0) {
-        e.preventDefault();
-        addFiles(imageFiles);
-      }
-    };
-
-    document.addEventListener('paste', handlePaste);
-    return () => document.removeEventListener('paste', handlePaste);
-  }, [showWrite, selectedFiles]);
 
   useEffect(() => {
     if (!lightbox.open) return;
@@ -210,25 +180,25 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!writeData.title.trim() || !writeData.content.trim()) {
+    const contentText = writeData.content.replace(/<[^>]*>/g, '').trim();
+    if (!writeData.title.trim() || !contentText) {
       alert('제목과 내용을 입력해주세요.');
       return;
     }
 
-    setSubmitting(true);
+    flushSync(() => setSubmitting(true));
     try {
-      const res = await api.createPost({
-        category,
-        title: writeData.title,
-        content: writeData.content,
-      });
+      await Promise.all([
+        api.createPost({
+          category,
+          title: writeData.title,
+          content: writeData.content,
+        }),
+        new Promise(resolve => setTimeout(resolve, 1200)),
+      ]);
 
-      if (selectedFiles.length > 0 && res.data?.id) {
-        await api.uploadPostImages(res.data.id, selectedFiles);
-      }
-
-      closeModal();
-      loadPosts(1, true); // 새 글 작성 후 첫 페이지로
+      closeModal(true);
+      loadPosts(1, true);
       checkAuth();
     } catch (e) {
       alert(e.message);
@@ -257,37 +227,15 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
     }
   };
 
-  const addFiles = (files) => {
-    const newFiles = [...selectedFiles, ...files].slice(0, 5);
-    setSelectedFiles(newFiles);
-
-    files.forEach(file => {
-      if (selectedFiles.length + files.indexOf(file) < 5) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPreviews(prev => [...prev, reader.result].slice(0, 5));
-        };
-        reader.readAsDataURL(file);
+  const closeModal = (force = false) => {
+    if (force !== true) {
+      const contentText = writeData.content.replace(/<[^>]*>/g, '').trim();
+      if (writeData.title.trim() || contentText) {
+        if (!confirm('작성 중인 내용이 있습니다. 닫으시겠습니까?')) return;
       }
-    });
-  };
-
-  const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files);
-    addFiles(files);
-    e.target.value = '';
-  };
-
-  const removeFile = (index) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-    setPreviews(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const closeModal = () => {
+    }
     setShowWrite(false);
     setWriteData({ title: '', content: '' });
-    setSelectedFiles([]);
-    setPreviews([]);
   };
 
   const openLightbox = (images, index) => {
@@ -324,7 +272,7 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
         </div>
       )}
 
-      <Modal isOpen={showWrite} onClose={closeModal} title="글쓰기">
+      <Modal isOpen={showWrite} onClose={closeModal} title="글쓰기" className="write-modal" preventOutsideClose>
         <form className="write-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label>제목</label>
@@ -336,42 +284,11 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
             />
           </div>
           <div className="form-group">
-            <label>내용</label>
-            <textarea
-              placeholder="내용을 입력하세요"
-              rows="6"
-              value={writeData.content}
-              onChange={e => setWriteData({ ...writeData, content: e.target.value })}
+            <label>내용 <span className="editor-hint">이미지를 붙여넣기(Ctrl+V) 또는 드래그하면 바로 삽입됩니다</span></label>
+            <RichTextEditor
+              content={writeData.content}
+              onChange={(html) => setWriteData(d => ({ ...d, content: html }))}
             />
-          </div>
-          <div className="form-group">
-            <label>이미지 (최대 5장) - Ctrl+V로 붙여넣기 가능</label>
-            <div
-              className={`image-upload-zone ${previews.length > 0 ? 'has-files' : ''}`}
-              onClick={() => fileRef.current?.click()}
-            >
-              <span className="upload-icon">+</span>
-              <span className="upload-text">클릭하여 선택 또는 Ctrl+V 붙여넣기</span>
-              <span className="upload-hint">{previews.length}/5장</span>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileSelect}
-                style={{ display: 'none' }}
-              />
-            </div>
-            {previews.length > 0 && (
-              <div className="image-preview-grid">
-                {previews.map((preview, i) => (
-                  <div key={i} className="preview-item">
-                    <img src={preview} alt={`미리보기 ${i + 1}`} />
-                    <button type="button" className="remove-preview" onClick={(e) => { e.stopPropagation(); removeFile(i); }}>×</button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
           <div className="form-actions">
             <button type="button" onClick={closeModal}>취소</button>
@@ -450,7 +367,11 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
 
                   <div className="board-item-content">
                     <h3 className="board-title">{p.title}</h3>
-                    <p className="board-text">{p.content}</p>
+                    {/<[a-z][\s\S]*>/i.test(p.content) ? (
+                      <div className="board-text rich-content" dangerouslySetInnerHTML={{ __html: p.content }} />
+                    ) : (
+                      <p className="board-text" style={{ whiteSpace: 'pre-wrap' }}>{p.content}</p>
+                    )}
 
                     {p.images && p.images.length > 0 && (
                       <div className={`board-images count-${Math.min(p.images.length, 4)}`}>
