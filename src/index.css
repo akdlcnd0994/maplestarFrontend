@@ -1519,8 +1519,8 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 .member-row.premium {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 31px 36px;
+  gap: 16px;
+  padding: 14px 20px;
   background: #fff;
   border: none;
   border-radius: 22px;
@@ -1570,22 +1570,6 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   font-size: 34px;
 }
 
-.member-row.premium .avatar-placeholder.game-avatar {
-  width: 200px;
-  height: 200px;
-  background: linear-gradient(135deg, #e8f4f8 0%, #d1ecf1 100%);
-  border-radius: 14px;
-}
-
-.member-row.premium .avatar-placeholder .ranking-avatar {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center bottom;
-  image-rendering: pixelated;
-}
-
-
 .member-row.premium .online-indicator {
   position: absolute;
   bottom: 0;
@@ -1601,6 +1585,26 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   background: #22c55e;
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 }
+
+.member-row.premium .avatar-placeholder.game-avatar {
+  width: 180px;
+  height: 180px;
+  background: #fff;
+  border-radius: 0;
+}
+
+.member-row.premium .avatar-placeholder .ranking-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  image-rendering: pixelated;
+  transform: scale(1.45) translateY(15%);
+  transform-origin: center bottom;
+  mix-blend-mode: multiply;
+}
+
+
 
 .member-row.premium.online .online-indicator.on {
   border-color: #ecfdf5;
@@ -1731,6 +1735,22 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.alts-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.alts-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.alts-list::-webkit-scrollbar-thumb {
+  background: #c4b5fd;
+  border-radius: 4px;
 }
 
 .alt-item {
@@ -1825,6 +1845,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   padding: 0;
   position: relative;
   overflow: hidden;
+  zoom: 0.95;
 }
 
 .modal-close-btn {
@@ -1865,6 +1886,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   flex-direction: row;
   align-items: flex-start;
   padding: 0;
+  zoom: 0.85;
 }
 
 .member-detail-left {
@@ -1954,8 +1976,11 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-detail-avatar.premium .avatar-large.game-avatar {
-  width: 250px;
-  height: 250px;
+  width: 225px;
+  height: 225px;
+  background: #fff;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .member-detail-avatar.premium .avatar-large img {
@@ -1970,6 +1995,9 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   object-fit: contain;
   object-position: center bottom;
   image-rendering: pixelated;
+  transform: scale(1.45) translateY(15%);
+  mix-blend-mode: multiply;
+  transform-origin: center bottom;
 }
 
 .member-detail-avatar.premium .avatar-large span {
@@ -13130,6 +13158,7 @@ button.point-shop-banner {
 }
 .styled-name-text {
   font-weight: 600;
+  color: #111;
 }
 
 /* 칭호 배지 - 등급별 */
