@@ -18,7 +18,7 @@ jobs:
 
       - run: npm run build
 
-      - run: npx wrangler pages deploy dist --project-name=maplestar-guild --branch=main
+      - run: npx wrangler@3 pages deploy dist --project-name=maplestar-guild --branch=main --commit-dirty=true
         env:
           CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
           CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
