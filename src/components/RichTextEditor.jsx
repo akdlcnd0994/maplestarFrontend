@@ -3,7 +3,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { TextStyle, FontFamily, FontSize } from '@tiptap/extension-text-style';
 import { useEffect, useCallback } from 'react';
-import { api } from '../services/api';
+import { api, getImageUrl } from '../services/api';
 
 const FONT_FAMILIES = [
   { label: '기본', value: '' },
@@ -45,7 +45,8 @@ export default function RichTextEditor({ content, onChange, placeholder = '내�
   const uploadImage = useCallback(async (file) => {
     try {
       const res = await api.uploadInlineImage(file);
-      return res.data?.url || null;
+      const url = res.data?.url || null;
+      return url ? getImageUrl(url) : null;
     } catch {
       return null;
     }

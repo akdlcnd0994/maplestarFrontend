@@ -2181,7 +2181,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 /* 모달 */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 200; }
 .modal-content { background: var(--cream); border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-.modal-content.write-modal { max-width: 780px; max-height: 92vh; }
+.modal-content.write-modal { max-width: 1000px; max-height: 92vh; }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 25px; border-bottom: 2px solid rgba(0,0,0,0.1); }
 .modal-header h3 { font-size: 18px; color: var(--wood-dark); }
 .close-btn {
