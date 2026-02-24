@@ -243,6 +243,10 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
     setLightbox({ open: true, images: imageUrls, index });
   };
 
+  const processContent = (content) => {
+    return content.replace(/src="(\/api\/[^"]+)"/g, (_, path) => `src="${getImageUrl(path)}"`);
+  };
+
   const formatTime = (dateStr) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
@@ -368,7 +372,7 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
                   <div className="board-item-content">
                     <h3 className="board-title">{p.title}</h3>
                     {/<[a-z][\s\S]*>/i.test(p.content) ? (
-                      <div className="board-text rich-content" dangerouslySetInnerHTML={{ __html: p.content }} />
+                      <div className="board-text rich-content" dangerouslySetInnerHTML={{ __html: processContent(p.content) }} />
                     ) : (
                       <p className="board-text" style={{ whiteSpace: 'pre-wrap' }}>{p.content}</p>
                     )}
