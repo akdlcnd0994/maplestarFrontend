@@ -6,7 +6,7 @@ import { getIconEmoji } from '../components/UserAvatar';
 import StyledName, { ProfileFrame } from '../components/StyledName';
 
 export default function GalleryPage({ setPage }) {
-  const { user, isLoggedIn, checkAuth } = useAuth();
+  const { user, isLoggedIn, checkAuth, updateUser } = useAuth();
   const isAdmin = user?.role === 'master' || user?.role === 'submaster';
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +22,7 @@ export default function GalleryPage({ setPage }) {
   const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  const [likingIds, setLikingIds] = useState(new Set());
   const fileRef = useRef(null);
 
   // 페이지네이션 상태
@@ -168,10 +169,11 @@ export default function GalleryPage({ setPage }) {
       alert('로그인이 필요합니다.');
       return;
     }
+    if (likingIds.has(id)) return;
+    setLikingIds(prev => new Set([...prev, id]));
     try {
       const res = await api.likeGallery(id);
 
-      // 좋아요 수 업데이트
       setImages(prev => prev.map(img =>
         img.id === id ? {
           ...img,
@@ -179,7 +181,6 @@ export default function GalleryPage({ setPage }) {
         } : img
       ));
 
-      // 라이트박스가 열려있고 현재 이미지라면 라이트박스 데이터도 업데이트
       if (lightbox.open && lightbox.data?.id === id) {
         setLightbox(prev => ({
           ...prev,
@@ -189,9 +190,18 @@ export default function GalleryPage({ setPage }) {
           }
         }));
       }
-      if (res.data?.pointEarned) checkAuth();
+      if (res.data?.pointEarned) {
+        updateUser({ point_balance: (user?.point_balance || 0) + res.data.pointEarned });
+        checkAuth();
+      }
     } catch (e) {
       alert(e.message);
+    } finally {
+      setLikingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -450,13 +460,14 @@ export default function GalleryPage({ setPage }) {
               </div>
               <div className="lightbox-actions">
                 <button
-                  className="lightbox-like-btn"
+                  className={`lightbox-like-btn${likingIds.has(lightbox.data.id) ? ' liking' : ''}`}
+                  disabled={likingIds.has(lightbox.data.id)}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleLike(lightbox.data.id, e);
                   }}
                 >
-                  ❤️ 좋아요 {lightbox.data.like_count || 0}
+                  {likingIds.has(lightbox.data.id) ? '⏳' : '❤️'} 좋아요 {lightbox.data.like_count || 0}
                 </button>
                 {(isAdmin || (user && Number(lightbox.data.user_id) === Number(user.id))) && (
                   <>
@@ -545,10 +556,11 @@ export default function GalleryPage({ setPage }) {
                     </div>
                     <div className="gallery-card-actions">
                       <button
-                        className="gallery-like-btn"
+                        className={`gallery-like-btn${likingIds.has(img.id) ? ' liking' : ''}`}
+                        disabled={likingIds.has(img.id)}
                         onClick={(e) => handleLike(img.id, e)}
                       >
-                        ❤️ {img.like_count || 0}
+                        {likingIds.has(img.id) ? '⏳' : '❤️'} {img.like_count || 0}
                       </button>
                       <span className="gallery-comment-count">💬 {img.comment_count || 0}</span>
                       {(isAdmin || (user && Number(img.user_id) === Number(user.id))) && (

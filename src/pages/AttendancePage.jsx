@@ -6,7 +6,7 @@ import StyledName, { ProfileFrame } from '../components/StyledName';
 import Modal from '../components/Modal';
 
 export default function AttendancePage({ setPage }) {
-  const { user, isLoggedIn, checkAuth } = useAuth();
+  const { user, isLoggedIn, checkAuth, updateUser } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [attendance, setAttendance] = useState([]);
   const [stats, setStats] = useState(null);
@@ -126,6 +126,9 @@ export default function AttendancePage({ setPage }) {
     try {
       const res = await api.checkAttendance();
       setTodayChecked(true);
+      if (res.data?.pointEarned) {
+        updateUser({ point_balance: (user?.point_balance || 0) + res.data.pointEarned });
+      }
       await loadData();
       checkAuth();
       alert(`${res.data.message} 연속 ${res.data.streak}일째!`);

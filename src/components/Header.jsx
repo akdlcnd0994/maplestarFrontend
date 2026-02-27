@@ -39,15 +39,23 @@ export default function Header({ page, setPage, guildLogo }) {
   const prevPointRef = useRef(null);
 
   // 포인트 변화 감지 → 플로팅 "+N" 팝업
+  // user?.point_balance만 dependency로 사용 → checkAuth()로 user 객체만 교체돼도 값이 같으면 effect 재실행 없음
   useEffect(() => {
-    const currentPoint = user?.point_balance ?? 0;
+    const currentPoint = user?.point_balance;
+
+    // 로그아웃 시 리셋 (undefined)
+    if (currentPoint === undefined) {
+      prevPointRef.current = null;
+      return;
+    }
+
     if (prevPointRef.current !== null && currentPoint > prevPointRef.current) {
       const delta = currentPoint - prevPointRef.current;
       setPointPopup({ amount: delta, key: Date.now() });
       setTimeout(() => setPointPopup(null), 1800);
     }
     prevPointRef.current = currentPoint;
-  }, [user?.point_balance]);
+  }, [user?.point_balance]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 페이지 변경 시 모바일 메뉴 닫기
   useEffect(() => {

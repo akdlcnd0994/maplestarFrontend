@@ -8,19 +8,21 @@ import StyledName, { ProfileFrame } from '../components/StyledName';
 import RichTextEditor from '../components/RichTextEditor';
 
 export default function ShowoffPage({ setPage, category = 'showoff' }) {
-  const { user, isLoggedIn, checkAuth } = useAuth();
+  const { user, isLoggedIn, checkAuth, updateUser } = useAuth();
   const isAdmin = user?.role === 'master' || user?.role === 'submaster';
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showWrite, setShowWrite] = useState(false);
   const [writeData, setWriteData] = useState({ title: '', content: '' });
+  const [editingPostId, setEditingPostId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [lightbox, setLightbox] = useState({ open: false, images: [], index: 0 });
   const [expandedPost, setExpandedPost] = useState(null);
   const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState({});
+  const [likingIds, setLikingIds] = useState(new Set());
   // 페이지네이션 상태
   const [pagination, setPagination] = useState({
     page: 1,
@@ -129,7 +131,7 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
     }
 
     try {
-      await api.createComment(postId, newComment);
+      const commentRes = await api.createComment(postId, newComment);
       setNewComment('');
       const res = await api.getComments(postId);
       setComments(prev => ({ ...prev, [postId]: res.data || [] }));
@@ -137,6 +139,9 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
       setPosts(prev => prev.map(p =>
         p.id === postId ? { ...p, comment_count: (p.comment_count || 0) + 1 } : p
       ));
+      if (commentRes.data?.pointEarned) {
+        updateUser({ point_balance: (user?.point_balance || 0) + commentRes.data.pointEarned });
+      }
       checkAuth();
     } catch (e) {
       alert(e.message);
@@ -175,6 +180,15 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
       setPage('login');
       return;
     }
+    setEditingPostId(null);
+    setWriteData({ title: '', content: '' });
+    setShowWrite(true);
+  };
+
+  const handleEditPost = (post, e) => {
+    e.stopPropagation();
+    setEditingPostId(post.id);
+    setWriteData({ title: post.title, content: post.content });
     setShowWrite(true);
   };
 
@@ -188,18 +202,30 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
 
     flushSync(() => setSubmitting(true));
     try {
-      await Promise.all([
-        api.createPost({
-          category,
-          title: writeData.title,
-          content: writeData.content,
-        }),
-        new Promise(resolve => setTimeout(resolve, 1200)),
-      ]);
-
-      closeModal(true);
-      loadPosts(1, true);
-      checkAuth();
+      if (editingPostId) {
+        // 수정
+        await Promise.all([
+          api.updatePost(editingPostId, { title: writeData.title, content: writeData.content }),
+          new Promise(resolve => setTimeout(resolve, 800)),
+        ]);
+        closeModal(true);
+        // 목록에서 해당 게시글만 즉시 업데이트
+        setPosts(prev => prev.map(p =>
+          p.id === editingPostId ? { ...p, title: writeData.title, content: writeData.content } : p
+        ));
+      } else {
+        // 새 글 등록
+        const [postRes] = await Promise.all([
+          api.createPost({ category, title: writeData.title, content: writeData.content }),
+          new Promise(resolve => setTimeout(resolve, 1200)),
+        ]);
+        closeModal(true);
+        loadPosts(1, true);
+        if (postRes.data?.pointEarned) {
+          updateUser({ point_balance: (user?.point_balance || 0) + postRes.data.pointEarned });
+        }
+        checkAuth();
+      }
     } catch (e) {
       alert(e.message);
     }
@@ -212,18 +238,28 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
       alert('로그인이 필요합니다.');
       return;
     }
+    if (likingIds.has(postId)) return;
+    setLikingIds(prev => new Set([...prev, postId]));
     try {
       const res = await api.likePost(postId);
-      // 좋아요 수 업데이트
       setPosts(prev => prev.map(p =>
         p.id === postId ? {
           ...p,
           like_count: res.data?.liked ? (p.like_count || 0) + 1 : Math.max((p.like_count || 1) - 1, 0)
         } : p
       ));
-      if (res.data?.pointEarned) checkAuth();
+      if (res.data?.pointEarned) {
+        updateUser({ point_balance: (user?.point_balance || 0) + res.data.pointEarned });
+        checkAuth();
+      }
     } catch (e) {
       alert(e.message);
+    } finally {
+      setLikingIds(prev => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
     }
   };
 
@@ -236,6 +272,7 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
     }
     setShowWrite(false);
     setWriteData({ title: '', content: '' });
+    setEditingPostId(null);
   };
 
   const openLightbox = (images, index) => {
@@ -243,8 +280,33 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
     setLightbox({ open: true, images: imageUrls, index });
   };
 
+  const YOUTUBE_RE = /(?:youtube\.com\/(?:watch\?(?:\S*&)?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+
+  const youtubeIframe = (videoId) =>
+    `<div class="youtube-embed"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+
   const processContent = (content) => {
-    return content.replace(/src="(\/api\/[^"]+)"/g, (_, path) => `src="${getImageUrl(path)}"`);
+    let processed = content.replace(/src="(\/api\/[^"]+)"/g, (_, path) => `src="${getImageUrl(path)}"`);
+
+    // <a href="유튜브URL">...</a> → iframe 변환
+    processed = processed.replace(
+      /<a[^>]+href="([^"]*(?:youtube\.com|youtu\.be)[^"]*)"[^>]*>.*?<\/a>/gi,
+      (match, url) => {
+        const m = url.match(YOUTUBE_RE);
+        return m ? youtubeIframe(m[1]) : match;
+      }
+    );
+
+    // <p>유튜브URL</p> 또는 <p><br></p> 사이의 단독 유튜브 URL → iframe 변환
+    processed = processed.replace(
+      /<p[^>]*>\s*((?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?[^\s<]+|shorts\/[^\s<]+)|youtu\.be\/[^\s<]+))\s*<\/p>/gi,
+      (match, url) => {
+        const m = url.match(YOUTUBE_RE);
+        return m ? youtubeIframe(m[1]) : match;
+      }
+    );
+
+    return processed;
   };
 
   const formatTime = (dateStr) => {
@@ -276,7 +338,7 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
         </div>
       )}
 
-      <Modal isOpen={showWrite} onClose={closeModal} title="글쓰기" className="write-modal" preventOutsideClose>
+      <Modal isOpen={showWrite} onClose={closeModal} title={editingPostId ? '게시글 수정' : '글쓰기'} className="write-modal" preventOutsideClose>
         <form className="write-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label>제목</label>
@@ -297,7 +359,7 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
           <div className="form-actions">
             <button type="button" onClick={closeModal}>취소</button>
             <button type="submit" className="primary" disabled={submitting}>
-              {submitting ? '등록 중...' : '등록'}
+              {submitting ? (editingPostId ? '수정 중...' : '등록 중...') : (editingPostId ? '수정' : '등록')}
             </button>
           </div>
         </form>
@@ -365,7 +427,12 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
                       </div>
                     </div>
                     {(isAdmin || p.user_id === user?.id) && (
-                      <button className="delete-btn-small" onClick={() => handleDeletePost(p.id)}>삭제</button>
+                      <div className="post-manage-btns">
+                        {p.user_id === user?.id && (
+                          <button className="edit-btn-small" onClick={(e) => handleEditPost(p, e)}>수정</button>
+                        )}
+                        <button className="delete-btn-small" onClick={() => handleDeletePost(p.id)}>삭제</button>
+                      </div>
                     )}
                   </div>
 
@@ -397,8 +464,12 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
 
                   <div className="board-item-footer">
                     <div className="board-actions">
-                      <button className="action-btn like" onClick={(e) => handleLike(p.id, e)}>
-                        <span className="action-icon">♥</span>
+                      <button
+                        className={`action-btn like${likingIds.has(p.id) ? ' liking' : ''}`}
+                        onClick={(e) => handleLike(p.id, e)}
+                        disabled={likingIds.has(p.id)}
+                      >
+                        <span className="action-icon">{likingIds.has(p.id) ? '⏳' : '♥'}</span>
                         <span className="action-count">{p.like_count || 0}</span>
                       </button>
                       <button className="action-btn comment" onClick={() => toggleComments(p.id)}>

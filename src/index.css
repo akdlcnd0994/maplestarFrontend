@@ -2794,8 +2794,20 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 .action-btn:hover { background: rgba(0,0,0,0.05); }
 .action-btn.like:hover { color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
 .action-btn.comment:hover { color: var(--maple-orange); background: rgba(224, 112, 32, 0.1); }
+.action-btn.liking { opacity: 0.6; cursor: not-allowed; animation: likePulse 0.6s ease-in-out infinite; }
+.action-btn:disabled { pointer-events: none; }
+.gallery-like-btn.liking, .lightbox-like-btn.liking { opacity: 0.6; cursor: not-allowed; animation: likePulse 0.6s ease-in-out infinite; }
+.gallery-like-btn:disabled, .lightbox-like-btn:disabled { pointer-events: none; }
+@keyframes likePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
 .action-icon { font-size: 16px; }
 .action-count { font-weight: 600; }
+
+/* 유튜브 임베드 */
+.youtube-embed { width: 100%; margin: 12px 0; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; }
+.youtube-embed iframe { width: 100%; height: 100%; border: none; display: block; }
 
 /* 댓글 섹션 */
 .board-comments {
@@ -2912,6 +2924,8 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   gap: 6px;
   margin-left: auto;
 }
+
+.post-manage-btns { display: flex; gap: 6px; align-items: center; }
 
 .edit-btn-small, .delete-btn-small {
   padding: 6px 12px;
