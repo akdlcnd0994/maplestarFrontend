@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import { api, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
+import RichTextEditor from '../components/RichTextEditor';
 
 export default function NoticePage({ setPage, selectedNotice, setSelectedNotice }) {
   const { user, isLoggedIn } = useAuth();
@@ -136,6 +137,21 @@ export default function NoticePage({ setPage, selectedNotice, setSelectedNotice 
     return `${d.getMonth() + 1}/${d.getDate()}`;
   };
 
+  // 공지 내용 렌더링: 리치에디터(HTML) 또는 구버전 일반 텍스트 모두 대응
+  const renderContent = (content) => {
+    if (!content) return '';
+    // HTML 태그로 시작하면 리치에디터 출력물로 간주
+    if (/^<[a-z]/i.test(content.trim())) {
+      return content.replace(/src="(\/api\/[^"]+)"/g, (_, path) => `src="${getImageUrl(path)}"`);
+    }
+    // 구버전 일반 텍스트 → XSS 이스케이프 후 줄바꿈 처리
+    return content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+  };
+
   return (
     <div className="page-content">
       <div className="page-header">
@@ -147,7 +163,7 @@ export default function NoticePage({ setPage, selectedNotice, setSelectedNotice 
       </div>
 
       {/* 글쓰기/수정 모달 */}
-      <Modal isOpen={showWrite} onClose={closeModal} title={editMode ? "공지사항 수정" : "공지사항 작성"}>
+      <Modal isOpen={showWrite} onClose={closeModal} title={editMode ? "공지사항 수정" : "공지사항 작성"} className="write-modal" preventOutsideClose>
         <form className="write-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label>제목</label>
@@ -159,12 +175,10 @@ export default function NoticePage({ setPage, selectedNotice, setSelectedNotice 
             />
           </div>
           <div className="form-group">
-            <label>내용</label>
-            <textarea
-              placeholder="공지사항 내용을 입력하세요"
-              rows="8"
-              value={writeData.content}
-              onChange={e => setWriteData({ ...writeData, content: e.target.value })}
+            <label>내용 <span className="editor-hint">이미지를 붙여넣기(Ctrl+V) 또는 드래그하면 바로 삽입됩니다</span></label>
+            <RichTextEditor
+              content={writeData.content}
+              onChange={(html) => setWriteData(d => ({ ...d, content: html }))}
             />
           </div>
           <div className="form-group">
@@ -202,9 +216,10 @@ export default function NoticePage({ setPage, selectedNotice, setSelectedNotice 
                 <span className="notice-author">{showDetail.user?.character_name || '관리자'}</span>
                 <span className="notice-date">{formatDate(showDetail.created_at)}</span>
               </div>
-              <div className="notice-detail-content">
-                {showDetail.content}
-              </div>
+              <div
+                className="notice-detail-content rich-content"
+                dangerouslySetInnerHTML={{ __html: renderContent(showDetail.content) }}
+              />
               {isAdmin && (
                 <div className="notice-detail-actions">
                   <button className="edit-btn" onClick={() => handleEdit(showDetail)}>수정</button>
