@@ -1,7 +1,9 @@
 ﻿import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function AttendanceWidget() {
+  const { user, updateUser, checkAuth } = useAuth();
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverToday, setServerToday] = useState(null);
@@ -24,8 +26,12 @@ export default function AttendanceWidget() {
     if (loading || checked) return;
     setLoading(true);
     try {
-      await api.checkAttendance();
+      const res = await api.checkAttendance();
       setChecked(true);
+      if (res.data?.pointEarned) {
+        updateUser({ point_balance: (user?.point_balance || 0) + res.data.pointEarned });
+      }
+      checkAuth();
     } catch (e) {
       alert(e.message);
     }

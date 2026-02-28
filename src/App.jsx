@@ -25,6 +25,7 @@ import IncubatorPage from './pages/IncubatorPage';
 import PointPage from './pages/PointPage';
 import ShopPage from './pages/ShopPage';
 import RoulettePage from './pages/RoulettePage';
+import MureungPage from './pages/MureungPage';
 import AnnouncementPopup from './components/AnnouncementPopup';
 
 export default function App() {
@@ -91,6 +92,12 @@ export default function App() {
         return <ShopPage {...pageProps} />;
       case 'roulette':
         return <RoulettePage {...pageProps} />;
+      case 'mureung-overall':
+        return <MureungPage {...pageProps} initialTab="overall" />;
+      case 'mureung-job':
+        return <MureungPage {...pageProps} initialTab="job" />;
+      case 'mureung-history':
+        return <MureungPage {...pageProps} initialTab="history" />;
       default:
         return <MainPage {...pageProps} />;
     }

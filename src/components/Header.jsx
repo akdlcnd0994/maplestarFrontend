@@ -18,6 +18,11 @@ const navStructure = [
     { id: 'scroll', label: '주문서' },
     { id: 'incubator', label: '부화기' },
   ]},
+  { label: '무릉도장', children: [
+    { id: 'mureung-overall', label: '종합랭킹' },
+    { id: 'mureung-job', label: '직업랭킹' },
+    { id: 'mureung-history', label: '역대기록' },
+  ]},
   { id: 'schedule', label: '운동회일정' },
   { label: '길드', children: [
     { id: 'members', label: '길드원' },

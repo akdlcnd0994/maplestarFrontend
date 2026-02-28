@@ -800,6 +800,35 @@ class ApiClient {
   async equipCustomization(itemId, equip) {
     return this.request('/customizations/equip', { method: 'PUT', body: JSON.stringify({ itemId, equip }) });
   }
+
+  // ==================== 무릉도장 ====================
+  async getMureungOverall(roundId = null) {
+    const q = roundId ? `?roundId=${roundId}` : '';
+    return this.request(`/mureung/overall${q}`);
+  }
+
+  async getMureungJob(jobGroup, roundId = null) {
+    const q = new URLSearchParams({ jobGroup });
+    if (roundId) q.set('roundId', roundId);
+    return this.request(`/mureung/job?${q}`);
+  }
+
+  async getMureungHistory() {
+    return this.request('/mureung/history');
+  }
+
+  async getMureungRounds() {
+    return this.request('/mureung/rounds');
+  }
+
+  async scrapeMureung(batch = null) {
+    const q = batch !== null ? `?batch=${batch}` : '';
+    return this.request(`/mureung/scrape${q}`, { method: 'POST', body: JSON.stringify({}) });
+  }
+
+  async scrapeMureungAllHistory() {
+    return this.request('/mureung/scrape-all-history', { method: 'POST', body: JSON.stringify({}) });
+  }
 }
 
 export const api = new ApiClient();
