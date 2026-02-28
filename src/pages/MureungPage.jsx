@@ -97,7 +97,7 @@ function RankingTable({ rankings, showJob = true, showJobRank = false, showPrevR
               </td>
               <td>
                 <div className="mureung-char-cell">
-                  <Avatar src={r.avatar_img} name={r.username} size={44} />
+                  <Avatar src={r.avatar_img} name={r.username} size={100} />
                   <div className="mureung-char-info">
                     <span className="mureung-username">{r.username}</span>
                     {(r.userlevel || r.userguild) && (

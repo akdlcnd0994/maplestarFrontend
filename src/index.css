@@ -14465,15 +14465,16 @@ button.point-shop-banner {
   background: rgba(0,0,0,0.35);
   color: rgba(245,230,200,0.7);
   font-weight: 600;
-  padding: 11px 16px;
+  padding: 14px 20px;
   text-align: left;
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .mureung-table td {
-  padding: 11px 16px;
+  height: 180px;
+  padding: 8px 20px;
   border-top: 1px solid rgba(255,255,255,0.06);
   color: var(--cream);
   vertical-align: middle;
@@ -14488,24 +14489,24 @@ button.point-shop-banner {
 .mureung-top3 td { background: rgba(180,120,60,0.1); }
 
 .mureung-rank-cell {
-  width: 64px;
+  width: 72px;
   text-align: center;
 }
 
-.mureung-medal { font-size: 22px; }
-.mureung-rank-num { font-weight: 700; font-size: 16px; color: rgba(245,230,200,0.8); }
+.mureung-medal { font-size: 32px; }
+.mureung-rank-num { font-weight: 700; font-size: 22px; color: rgba(245,230,200,0.8); }
 
 .mureung-char-cell {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 180px;
+  gap: 18px;
+  min-width: 220px;
 }
 
 .mureung-char-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -14522,25 +14523,25 @@ button.point-shop-banner {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--cream);
   flex-shrink: 0;
   border: 2px solid rgba(255,255,255,0.2);
 }
 
-.mureung-username { font-weight: 700; font-size: 15px; }
+.mureung-username { font-weight: 700; font-size: 18px; }
 .mureung-char-sub {
-  font-size: 12px;
+  font-size: 14px;
   color: rgba(245,230,200,0.5);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.mureung-job-cell { color: rgba(245,230,200,0.75); font-size: 13px; }
+.mureung-job-cell { color: rgba(245,230,200,0.75); font-size: 16px; }
 .mureung-job-rank {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--maple-gold);
   font-weight: 600;
   margin-left: 4px;
@@ -14548,6 +14549,7 @@ button.point-shop-banner {
 }
 
 .mureung-score-cell {
+  font-size: 20px;
   font-weight: 700;
   color: var(--maple-gold);
   text-align: right;
@@ -14556,10 +14558,10 @@ button.point-shop-banner {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 3px;
+  gap: 5px;
 }
 .mureung-prev-rank {
-  font-size: 11px;
+  font-size: 13px;
   color: rgba(245,230,200,0.45);
   font-weight: 400;
 }
