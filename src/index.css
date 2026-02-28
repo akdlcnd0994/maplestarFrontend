@@ -1520,7 +1520,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 14px 20px;
+  padding: 10px 20px;
   background: #fff;
   border: none;
   border-radius: 22px;
@@ -1549,8 +1549,8 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .avatar-placeholder {
-  width: 74px;
-  height: 74px;
+  width: 56px;
+  height: 56px;
   background: linear-gradient(135deg, #e0d0c0 0%, #c8b8a8 100%);
   border-radius: 50%;
   display: flex;
@@ -1567,7 +1567,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .avatar-placeholder span {
-  font-size: 34px;
+  font-size: 26px;
 }
 
 .member-row.premium .online-indicator {
@@ -1587,8 +1587,8 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .avatar-placeholder.game-avatar {
-  width: 180px;
-  height: 180px;
+  width: 120px;
+  height: 120px;
   background: #fff;
   border-radius: 0;
 }
@@ -1619,7 +1619,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .member-name {
-  font-size: 23px;
+  font-size: 17px;
   font-weight: 600;
   color: #1a1a1a;
   white-space: nowrap;
@@ -1665,12 +1665,12 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .member-job {
-  font-size: 19px;
+  font-size: 14px;
   color: #888;
 }
 
 .member-row.premium .member-level {
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
   color: #e07020;
 }
