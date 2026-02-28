@@ -61,13 +61,14 @@ function Avatar({ src, name, size = 40 }) {
     );
   }
   return (
-    <img
-      src={src}
-      alt={name}
-      className="mureung-avatar"
-      style={{ width: size, height: size }}
-      onError={() => setError(true)}
-    />
+    <div className="mureung-avatar-wrap" style={{ width: size, height: size }}>
+      <img
+        src={src}
+        alt={name}
+        className="mureung-avatar"
+        onError={() => setError(true)}
+      />
+    </div>
   );
 }
 
