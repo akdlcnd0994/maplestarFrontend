@@ -1519,8 +1519,8 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 .member-row.premium {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 10px 20px;
+  gap: 19px;
+  padding: 12px 24px;
   background: #fff;
   border: none;
   border-radius: 22px;
@@ -1549,8 +1549,8 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .avatar-placeholder {
-  width: 56px;
-  height: 56px;
+  width: 68px;
+  height: 68px;
   background: linear-gradient(135deg, #e0d0c0 0%, #c8b8a8 100%);
   border-radius: 50%;
   display: flex;
@@ -1567,15 +1567,15 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .avatar-placeholder span {
-  font-size: 26px;
+  font-size: 31px;
 }
 
 .member-row.premium .online-indicator {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 17px;
-  height: 17px;
+  width: 20px;
+  height: 20px;
   background: #ccc;
   border-radius: 50%;
   border: 3px solid #fff;
@@ -1587,8 +1587,8 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .avatar-placeholder.game-avatar {
-  width: 120px;
-  height: 120px;
+  width: 144px;
+  height: 144px;
   background: linear-gradient(135deg, #e0d0c0 0%, #c8b8a8 100%);
   border-radius: 50%;
 }
@@ -1612,12 +1612,12 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 17px;
   min-width: 0;
 }
 
 .member-row.premium .member-name {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
   color: #1a1a1a;
   white-space: nowrap;
@@ -1626,9 +1626,9 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .member-role {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
-  padding: 5px 14px;
+  padding: 6px 17px;
   border-radius: 20px;
   flex-shrink: 0;
 }
@@ -1663,12 +1663,12 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 }
 
 .member-row.premium .member-job {
-  font-size: 14px;
+  font-size: 17px;
   color: #888;
 }
 
 .member-row.premium .member-level {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: #e07020;
 }
