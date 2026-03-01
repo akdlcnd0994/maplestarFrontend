@@ -2794,13 +2794,15 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #2a1f14; color: var(
 .action-btn.comment:hover { color: var(--maple-orange); background: rgba(224, 112, 32, 0.1); }
 .action-btn.liking { opacity: 0.6; cursor: not-allowed; animation: likePulse 0.6s ease-in-out infinite; }
 .action-btn:disabled { pointer-events: none; }
+.action-btn.like.liked { color: #c0392b; }
 .gallery-like-btn.liking, .lightbox-like-btn.liking { opacity: 0.6; cursor: not-allowed; animation: likePulse 0.6s ease-in-out infinite; }
 .gallery-like-btn:disabled, .lightbox-like-btn:disabled { pointer-events: none; }
+.gallery-like-btn .like-heart, .lightbox-like-btn .like-heart { font-size: 13px; line-height: 1; transition: color 0.2s; }
 @keyframes likePulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.08); }
 }
-.action-icon { font-size: 16px; }
+.action-icon { font-size: 13px; line-height: 1; }
 .action-count { font-weight: 600; }
 
 /* 유튜브 임베드 */

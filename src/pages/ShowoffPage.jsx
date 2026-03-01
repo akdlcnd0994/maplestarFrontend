@@ -245,6 +245,7 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
       setPosts(prev => prev.map(p =>
         p.id === postId ? {
           ...p,
+          is_liked: res.data?.liked ? 1 : 0,
           like_count: res.data?.liked ? (p.like_count || 0) + 1 : Math.max((p.like_count || 1) - 1, 0)
         } : p
       ));
@@ -465,11 +466,11 @@ export default function ShowoffPage({ setPage, category = 'showoff' }) {
                   <div className="board-item-footer">
                     <div className="board-actions">
                       <button
-                        className={`action-btn like${likingIds.has(p.id) ? ' liking' : ''}`}
+                        className={`action-btn like${likingIds.has(p.id) ? ' liking' : ''}${p.is_liked ? ' liked' : ''}`}
                         onClick={(e) => handleLike(p.id, e)}
                         disabled={likingIds.has(p.id)}
                       >
-                        <span className="action-icon">{likingIds.has(p.id) ? '⏳' : '♥'}</span>
+                        <span className="action-icon">{likingIds.has(p.id) ? '⏳' : p.is_liked ? '❤️' : '♡'}</span>
                         <span className="action-count">{p.like_count || 0}</span>
                       </button>
                       <button className="action-btn comment" onClick={() => toggleComments(p.id)}>

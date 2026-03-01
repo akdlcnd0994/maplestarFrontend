@@ -177,6 +177,7 @@ export default function GalleryPage({ setPage }) {
       setImages(prev => prev.map(img =>
         img.id === id ? {
           ...img,
+          is_liked: res.data?.liked ? 1 : 0,
           like_count: res.data?.liked ? (img.like_count || 0) + 1 : Math.max((img.like_count || 1) - 1, 0)
         } : img
       ));
@@ -186,6 +187,7 @@ export default function GalleryPage({ setPage }) {
           ...prev,
           data: {
             ...prev.data,
+            is_liked: res.data?.liked ? 1 : 0,
             like_count: res.data?.liked ? (prev.data.like_count || 0) + 1 : Math.max((prev.data.like_count || 1) - 1, 0)
           }
         }));
@@ -460,14 +462,14 @@ export default function GalleryPage({ setPage }) {
               </div>
               <div className="lightbox-actions">
                 <button
-                  className={`lightbox-like-btn${likingIds.has(lightbox.data.id) ? ' liking' : ''}`}
+                  className={`lightbox-like-btn${likingIds.has(lightbox.data.id) ? ' liking' : ''}${lightbox.data.is_liked ? ' liked' : ''}`}
                   disabled={likingIds.has(lightbox.data.id)}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleLike(lightbox.data.id, e);
                   }}
                 >
-                  {likingIds.has(lightbox.data.id) ? '⏳' : '❤️'} 좋아요 {lightbox.data.like_count || 0}
+                  <span className="like-heart">{likingIds.has(lightbox.data.id) ? '⏳' : lightbox.data.is_liked ? '❤️' : '♡'}</span> 좋아요 {lightbox.data.like_count || 0}
                 </button>
                 {(isAdmin || (user && Number(lightbox.data.user_id) === Number(user.id))) && (
                   <>
@@ -556,11 +558,11 @@ export default function GalleryPage({ setPage }) {
                     </div>
                     <div className="gallery-card-actions">
                       <button
-                        className={`gallery-like-btn${likingIds.has(img.id) ? ' liking' : ''}`}
+                        className={`gallery-like-btn${likingIds.has(img.id) ? ' liking' : ''}${img.is_liked ? ' liked' : ''}`}
                         disabled={likingIds.has(img.id)}
                         onClick={(e) => handleLike(img.id, e)}
                       >
-                        {likingIds.has(img.id) ? '⏳' : '❤️'} {img.like_count || 0}
+                        <span className="like-heart">{likingIds.has(img.id) ? '⏳' : img.is_liked ? '❤️' : '♡'}</span> {img.like_count || 0}
                       </button>
                       <span className="gallery-comment-count">💬 {img.comment_count || 0}</span>
                       {(isAdmin || (user && Number(img.user_id) === Number(user.id))) && (
