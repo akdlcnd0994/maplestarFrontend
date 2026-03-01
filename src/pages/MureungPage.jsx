@@ -72,7 +72,7 @@ function Avatar({ src, name, size = 40 }) {
   );
 }
 
-function RankingTable({ rankings, showJob = true, showJobRank = false, showPrevRank = false }) {
+function RankingTable({ rankings, showJob = true, showJobRank = false, showPrevRank = false, showRound = false }) {
   if (!rankings || rankings.length === 0) {
     return <div className="mureung-empty">데이터가 없습니다.</div>;
   }
@@ -124,6 +124,12 @@ function RankingTable({ rankings, showJob = true, showJobRank = false, showPrevR
                   <span>{formatScore(r.score)}</span>
                   {showPrevRank && r.prev_job_rank != null && (
                     <span className="mureung-prev-rank">전회차 직업 {r.prev_job_rank}위</span>
+                  )}
+                  {showRound && r.round_start && (
+                    <span className="mureung-round-info">
+                      {r.boss_name && <span className="mureung-round-boss-tag">{r.boss_name}</span>}
+                      <span>{r.round_start} ~ {r.round_end}</span>
+                    </span>
                   )}
                 </div>
               </td>
@@ -282,7 +288,7 @@ function HistoryTab() {
       ) : err ? (
         <div className="mureung-error">{err}</div>
       ) : (
-        <RankingTable rankings={history} showJob={true} />
+        <RankingTable rankings={history} showJob={true} showRound={true} />
       )}
     </div>
   );
