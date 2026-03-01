@@ -102,8 +102,10 @@ export default function NotificationBell({ setPage }) {
 
     setShowPanel(false);
 
-    if (notification.target_type === 'post') {
+    if (notification.target_type === 'showoff' || notification.target_type === 'post') {
       setPage('showoff');
+    } else if (notification.target_type === 'info') {
+      setPage('info');
     } else if (notification.target_type === 'gallery') {
       setPage('gallery');
     }

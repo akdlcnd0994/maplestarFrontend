@@ -137,28 +137,57 @@ function RankingTable({ rankings, showJob = true, showJobRank = false, showPrevR
 
 // ─── 종합랭킹 탭 ────────────────────────────────────────────
 function OverallTab() {
+  const [rounds, setRounds] = useState([]);
+  const [selectedRound, setSelectedRound] = useState('');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
+    api.getMureungRounds()
+      .then((res) => {
+        const list = (res.data || []).filter((r) => !r.is_current);
+        setRounds(list);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     setLoading(true);
-    api.getMureungOverall()
+    setErr(null);
+    api.getMureungOverall(selectedRound || null)
       .then((res) => setData(res.data))
       .catch(() => setErr('데이터를 불러오지 못했습니다.'))
       .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <div className="mureung-loading">불러오는 중...</div>;
-  if (err) return <div className="mureung-error">{err}</div>;
+  }, [selectedRound]);
 
   return (
     <div className="mureung-tab-content">
+      <div className="mureung-filters">
+        <select
+          className="mureung-select"
+          value={selectedRound}
+          onChange={(e) => setSelectedRound(e.target.value)}
+        >
+          <option value="">현재 회차</option>
+          {rounds.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.round_start} ~ {r.round_end}{r.boss_name ? ` (${r.boss_name})` : ''}
+            </option>
+          ))}
+        </select>
+      </div>
       <RoundBadge round={data?.round} />
-      {!data?.round && (
+      {!loading && !err && !data?.round && (
         <div className="mureung-empty">스크래핑된 데이터가 없습니다.</div>
       )}
-      <RankingTable rankings={data?.rankings} showJob={true} showJobRank={true} showPrevRank={true} />
+      {loading ? (
+        <div className="mureung-loading">불러오는 중...</div>
+      ) : err ? (
+        <div className="mureung-error">{err}</div>
+      ) : (
+        <RankingTable rankings={data?.rankings} showJob={true} showJobRank={true} showPrevRank={selectedRound === ''} />
+      )}
     </div>
   );
 }
