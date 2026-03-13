@@ -18,6 +18,34 @@ export const getImageUrl = (url) => {
 // 세션 만료 이벤트
 const SESSION_EXPIRED_EVENT = 'session-expired';
 
+class ApiCache {
+  constructor() {
+    this._store = new Map();
+  }
+
+  get(key) {
+    const entry = this._store.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+      this._store.delete(key);
+      return null;
+    }
+    return entry.data;
+  }
+
+  set(key, data, ttlMs) {
+    this._store.set(key, { data, expiresAt: Date.now() + ttlMs });
+  }
+
+  invalidatePrefix(prefix) {
+    for (const key of this._store.keys()) {
+      if (key.startsWith(prefix)) this._store.delete(key);
+    }
+  }
+}
+
+const apiCache = new ApiCache();
+
 class ApiClient {
   constructor() {
     this.baseUrl = API_BASE;
@@ -803,31 +831,58 @@ class ApiClient {
 
   // ==================== 무릉도장 ====================
   async getMureungOverall(roundId = null) {
+    const key = `mureung:overall:${roundId ?? 'current'}`;
+    const cached = apiCache.get(key);
+    if (cached) return cached;
     const q = roundId ? `?roundId=${roundId}` : '';
-    return this.request(`/mureung/overall${q}`);
+    const res = await this.request(`/mureung/overall${q}`);
+    // 현재 회차는 5분, 과거 회차는 1시간 캐싱
+    apiCache.set(key, res, roundId ? 60 * 60 * 1000 : 5 * 60 * 1000);
+    return res;
   }
 
   async getMureungJob(jobGroup, roundId = null) {
+    const key = `mureung:job:${jobGroup}:${roundId ?? 'current'}`;
+    const cached = apiCache.get(key);
+    if (cached) return cached;
     const q = new URLSearchParams({ jobGroup });
     if (roundId) q.set('roundId', roundId);
-    return this.request(`/mureung/job?${q}`);
+    const res = await this.request(`/mureung/job?${q}`);
+    apiCache.set(key, res, roundId ? 60 * 60 * 1000 : 5 * 60 * 1000);
+    return res;
   }
 
   async getMureungHistory() {
-    return this.request('/mureung/history');
+    const key = 'mureung:history';
+    const cached = apiCache.get(key);
+    if (cached) return cached;
+    const res = await this.request('/mureung/history');
+    apiCache.set(key, res, 30 * 60 * 1000); // 30분
+    return res;
   }
 
   async getMureungRounds() {
-    return this.request('/mureung/rounds');
+    const key = 'mureung:rounds';
+    const cached = apiCache.get(key);
+    if (cached) return cached;
+    const res = await this.request('/mureung/rounds');
+    apiCache.set(key, res, 60 * 60 * 1000); // 1시간
+    return res;
   }
 
   async scrapeMureung(batch = null) {
     const q = batch !== null ? `?batch=${batch}` : '';
-    return this.request(`/mureung/scrape${q}`, { method: 'POST', body: JSON.stringify({}) });
+    const res = await this.request(`/mureung/scrape${q}`, { method: 'POST', body: JSON.stringify({}) });
+    // 스크래핑 완료 후 현재 회차 캐시 무효화
+    apiCache.invalidatePrefix('mureung:');
+    return res;
   }
 
   async scrapeMureungAllHistory() {
-    return this.request('/mureung/scrape-all-history', { method: 'POST', body: JSON.stringify({}) });
+    const res = await this.request('/mureung/scrape-all-history', { method: 'POST', body: JSON.stringify({}) });
+    // 전체 무릉 캐시 무효화
+    apiCache.invalidatePrefix('mureung:');
+    return res;
   }
 }
 
