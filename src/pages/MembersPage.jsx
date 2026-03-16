@@ -340,7 +340,7 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
               return (
                 <div
                   key={i}
-                  className={`member-row premium ${m.is_online ? 'online' : ''} role-${m.role || 'member'}`}
+                  className={`member-row premium ${m.is_online ? 'online' : ''} role-${effectiveRole || 'member'}`}
                   onClick={() => setShowDetail(m)}
                 >
                   <div className="member-avatar-box">
@@ -359,7 +359,7 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
                     <div className="member-info-col">
                       <div className="member-name-row">
                         <StyledName user={m} showTitle={false} className="member-name" />
-                        <span className={`member-role role-${m.role || 'member'}`}>
+                        <span className={`member-role role-${effectiveRole || 'member'}`}>
                           {roleInfo.label}
                         </span>
                       </div>
