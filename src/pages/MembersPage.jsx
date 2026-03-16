@@ -335,7 +335,8 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
             <div className="empty-message">표시할 길드원이 없습니다.</div>
           ) : (
             filtered.map((m, i) => {
-              const roleInfo = roles[m.role] || roles.member;
+              const effectiveRole = (m.role === 'honorary' && m.ranking_guild === '메이플운동회') ? 'member' : m.role;
+              const roleInfo = roles[effectiveRole] || roles.member;
               return (
                 <div
                   key={i}
@@ -438,7 +439,7 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
                   </h2>
                   <div className="member-detail-badges">
                     <span className={`role-tag role-${showDetail.role || 'member'}`}>
-                      {roles[showDetail.role]?.label || '길드원'}
+                      {(showDetail.role === 'honorary' && showDetail.ranking_guild === '메이플운동회') ? '길드원' : (roles[showDetail.role]?.label || '길드원')}
                     </span>
                     {(showDetail.ranking_guild || showDetail.alliance_name) && (
                       <span className={`guild-tag ${showDetail.is_main_guild ? 'main' : 'alliance'}`}>
