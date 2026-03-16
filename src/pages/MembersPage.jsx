@@ -362,9 +362,9 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
                           {roleInfo.label}
                         </span>
                       </div>
-                      {m.alliance_name && (
+                      {(m.ranking_guild || m.alliance_name) && (
                         <span className={`member-guild ${m.is_main_guild ? 'main' : 'alliance'}`}>
-                          {m.alliance_emblem} {m.alliance_name}
+                          {m.ranking_guild ? m.ranking_guild : `${m.alliance_emblem} ${m.alliance_name}`}
                         </span>
                       )}
                       {m.alt_characters?.length > 0 && (
@@ -440,9 +440,9 @@ export default function MembersPage({ setPage, selectedMember, setSelectedMember
                     <span className={`role-tag role-${showDetail.role || 'member'}`}>
                       {roles[showDetail.role]?.label || '길드원'}
                     </span>
-                    {showDetail.alliance_name && (
+                    {(showDetail.ranking_guild || showDetail.alliance_name) && (
                       <span className={`guild-tag ${showDetail.is_main_guild ? 'main' : 'alliance'}`}>
-                        {showDetail.alliance_emblem} {showDetail.alliance_name}
+                        {showDetail.ranking_guild ? showDetail.ranking_guild : `${showDetail.alliance_emblem} ${showDetail.alliance_name}`}
                       </span>
                     )}
                   </div>

@@ -21,6 +21,7 @@ const navStructure = [
   { label: '무릉도장', children: [
     { id: 'mureung-overall', label: '종합랭킹' },
     { id: 'mureung-job', label: '직업랭킹' },
+    { id: 'mureung-guild', label: '길드랭킹' },
     { id: 'mureung-history', label: '역대기록' },
   ]},
   { id: 'schedule', label: '운동회일정' },

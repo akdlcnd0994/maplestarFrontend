@@ -14782,8 +14782,94 @@ button.point-shop-banner {
   color: #e57373;
 }
 
+/* 길드랭킹 */
+.mureung-guild-table th,
+.mureung-guild-table td {
+  padding: 10px 12px;
+}
+.mureung-guild-row-clickable {
+  cursor: pointer;
+}
+.mureung-guild-row-clickable:hover td {
+  background: rgba(255,255,255,0.08) !important;
+}
+.mureung-guild-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mureung-guild-name {
+  font-weight: 600;
+  color: var(--cream);
+}
+.mureung-guild-toggle {
+  font-size: 11px;
+  opacity: 0.6;
+}
+.mureung-medal-count {
+  text-align: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--cream);
+}
+.mureung-guild-detail-row td {
+  background: rgba(0,0,0,0.2) !important;
+  padding: 12px 16px !important;
+}
+.mureung-guild-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.mureung-guild-member-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 6px 10px;
+  width: 205px;
+  height: 110px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+.mureung-guild-member-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mureung-guild-member-medal {
+  font-size: 14px;
+}
+.mureung-sort-tabs {
+  display: flex;
+  gap: 4px;
+}
+.mureung-sort-tab {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-secondary, #aaa);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+.mureung-sort-tab.active {
+  background: var(--maple-gold, #f59e0b);
+  border-color: var(--maple-gold, #f59e0b);
+  color: #000;
+  font-weight: 700;
+}
+.mureung-guild-member-item .mureung-score-cell {
+  font-size: 18px;
+}
+
 @media (max-width: 600px) {
   .mureung-tabs { flex-direction: column; }
   .mureung-score-cell { font-size: 13px; }
   .mureung-history-score { font-size: 15px; }
+  .mureung-guild-member-item { width: 205px; height: 110px; }
+  .mureung-guild-table th:nth-child(7),
+  .mureung-guild-table td:nth-child(7) { display: none; }
 }

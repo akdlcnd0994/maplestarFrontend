@@ -96,6 +96,8 @@ export default function App() {
         return <MureungPage {...pageProps} initialTab="overall" />;
       case 'mureung-job':
         return <MureungPage {...pageProps} initialTab="job" />;
+      case 'mureung-guild':
+        return <MureungPage {...pageProps} initialTab="guild" />;
       case 'mureung-history':
         return <MureungPage {...pageProps} initialTab="history" />;
       default:

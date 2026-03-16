@@ -870,6 +870,16 @@ class ApiClient {
     return res;
   }
 
+  async getMureungGuildRanking(roundId = null) {
+    const key = `mureung:guild:${roundId ?? 'current'}`;
+    const cached = apiCache.get(key);
+    if (cached) return cached;
+    const q = roundId ? `?roundId=${roundId}` : '';
+    const res = await this.request(`/mureung/guild-ranking${q}`);
+    apiCache.set(key, res, 5 * 60 * 1000); // 5분 (현재/과거 동일)
+    return res;
+  }
+
   async scrapeMureung(batch = null) {
     const q = batch !== null ? `?batch=${batch}` : '';
     const res = await this.request(`/mureung/scrape${q}`, { method: 'POST', body: JSON.stringify({}) });

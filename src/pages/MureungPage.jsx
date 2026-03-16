@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
@@ -295,6 +295,156 @@ function HistoryTab() {
   );
 }
 
+// ─── 길드랭킹 탭 ────────────────────────────────────────────
+function GuildTab() {
+  const [rounds, setRounds] = useState([]);
+  const [selectedRound, setSelectedRound] = useState('');
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
+  const [expandedGuild, setExpandedGuild] = useState(null);
+  const [sortBy, setSortBy] = useState('medal'); // 'medal' | 'total'
+
+  useEffect(() => {
+    api.getMureungRounds()
+      .then((res) => {
+        const list = (res.data || []).filter((r) => !r.is_current);
+        setRounds(list);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    setErr(null);
+    api.getMureungGuildRanking(selectedRound || null)
+      .then((res) => setData(res.data))
+      .catch(() => setErr('데이터를 불러오지 못했습니다.'))
+      .finally(() => setLoading(false));
+  }, [selectedRound]);
+
+  const sortedRankings = data?.rankings
+    ? sortBy === 'total'
+      ? [...data.rankings].sort((a, b) => b.total_score - a.total_score)
+      : data.rankings
+    : [];
+
+  // 상위30 멤버를 길드별로 그룹핑
+  const membersByGuild = (data?.medal_members || []).reduce((acc, m) => {
+    if (!acc[m.guild]) acc[m.guild] = [];
+    acc[m.guild].push(m);
+    return acc;
+  }, {});
+
+  const MEDAL_LABEL = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+  return (
+    <div className="mureung-tab-content">
+      <div className="mureung-filters">
+        <select
+          className="mureung-select"
+          value={selectedRound}
+          onChange={(e) => { setSelectedRound(e.target.value); setExpandedGuild(null); }}
+        >
+          <option value="">현재 회차</option>
+          {rounds.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.round_start} ~ {r.round_end}{r.boss_name ? ` (${r.boss_name})` : ''}
+            </option>
+          ))}
+        </select>
+        <div className="mureung-sort-tabs">
+          <button
+            className={`mureung-sort-tab${sortBy === 'medal' ? ' active' : ''}`}
+            onClick={() => setSortBy('medal')}
+          >금은동 기준</button>
+          <button
+            className={`mureung-sort-tab${sortBy === 'total' ? ' active' : ''}`}
+            onClick={() => setSortBy('total')}
+          >총합 기준</button>
+        </div>
+      </div>
+      <RoundBadge round={data?.round} />
+      {loading ? (
+        <div className="mureung-loading">불러오는 중...</div>
+      ) : err ? (
+        <div className="mureung-error">{err}</div>
+      ) : !data?.rankings?.length ? (
+        <div className="mureung-empty">데이터가 없습니다.</div>
+      ) : (
+        <div className="mureung-table-wrap">
+          <table className="mureung-table mureung-guild-table">
+            <thead>
+              <tr>
+                <th>순위</th>
+                <th>길드</th>
+                <th style={{ textAlign: 'center' }}>🥇</th>
+                <th style={{ textAlign: 'center' }}>🥈</th>
+                <th style={{ textAlign: 'center' }}>🥉</th>
+                <th style={{ textAlign: 'right' }}>길드원 총합(상위30)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedRankings.map((g, idx) => {
+                const isExpanded = expandedGuild === g.guild;
+                const members = membersByGuild[g.guild] || [];
+                const rowClass = idx < 3 ? `mureung-top${idx + 1}` : '';
+                return (
+                  <Fragment key={g.guild}>
+                    <tr
+                      className={`${rowClass} mureung-guild-row mureung-guild-row-clickable`}
+                      onClick={() => setExpandedGuild(isExpanded ? null : g.guild)}
+                    >
+                      <td className="mureung-rank-cell">
+                        {(() => {
+                          const rank = sortBy === 'total' ? idx + 1 : g.guild_rank;
+                          if (rank === 1) return <span className="mureung-medal">🥇</span>;
+                          if (rank === 2) return <span className="mureung-medal">🥈</span>;
+                          if (rank === 3) return <span className="mureung-medal">🥉</span>;
+                          return <span className="mureung-rank-num">{rank}</span>;
+                        })()}
+                      </td>
+                      <td className="mureung-guild-name-cell">
+                        <span className="mureung-guild-name">{g.guild === '-' ? '(길드없음)' : g.guild}</span>
+                        <span className="mureung-guild-toggle">{isExpanded ? '▲' : '▼'}</span>
+                      </td>
+                      <td className="mureung-medal-count">{g.gold || 0}</td>
+                      <td className="mureung-medal-count">{g.silver || 0}</td>
+                      <td className="mureung-medal-count">{g.bronze || 0}</td>
+                      <td className="mureung-score-cell">{formatScore(g.total_score)}</td>
+                    </tr>
+                    {isExpanded && (
+                      <tr key={`${g.guild}-detail`} className="mureung-guild-detail-row">
+                        <td colSpan={6}>
+                          <div className="mureung-guild-members">
+                            {members.map((m, mi) => (
+                              <div key={`${m.username}-${mi}`} className="mureung-guild-member-item">
+                                <Avatar src={m.avatar_img} name={m.username} size={60} />
+                                <div className="mureung-guild-member-info">
+                                  <span className="mureung-guild-member-medal">
+                                    {MEDAL_LABEL[m.rank] ?? `${mi + 1}위`}
+                                  </span>
+                                  <span className="mureung-username">{m.username}</span>
+                                  <span className="mureung-char-sub">{m.job_name}</span>
+                                  <span className="mureung-score-cell">{formatScore(m.score)}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── 관리자 패널 ────────────────────────────────────────────
 function AdminPanel() {
   const [scraping, setScraping] = useState(false);
@@ -359,6 +509,7 @@ export default function MureungPage({ initialTab = 'overall' }) {
   const tabs = [
     { id: 'overall', label: '종합랭킹' },
     { id: 'job', label: '직업랭킹' },
+    { id: 'guild', label: '길드랭킹' },
     { id: 'history', label: '역대기록' },
   ];
 
@@ -382,6 +533,7 @@ export default function MureungPage({ initialTab = 'overall' }) {
 
       {tab === 'overall' && <OverallTab />}
       {tab === 'job' && <JobTab />}
+      {tab === 'guild' && <GuildTab />}
       {tab === 'history' && <HistoryTab />}
 
       {user?.role === 'master' && <AdminPanel />}
