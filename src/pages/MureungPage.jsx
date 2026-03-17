@@ -315,12 +315,15 @@ function GuildTab() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
+    setData(null);
     setErr(null);
     api.getMureungGuildRanking(selectedRound || null)
-      .then((res) => setData(res.data))
-      .catch(() => setErr('데이터를 불러오지 못했습니다.'))
-      .finally(() => setLoading(false));
+      .then((res) => { if (!cancelled) setData(res.data); })
+      .catch(() => { if (!cancelled) setErr('데이터를 불러오지 못했습니다.'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [selectedRound]);
 
   const sortedRankings = data?.rankings
@@ -355,10 +358,12 @@ function GuildTab() {
         </select>
         <div className="mureung-sort-tabs">
           <button
+            type="button"
             className={`mureung-sort-tab${sortBy === 'medal' ? ' active' : ''}`}
             onClick={() => setSortBy('medal')}
           >금은동 기준</button>
           <button
+            type="button"
             className={`mureung-sort-tab${sortBy === 'total' ? ' active' : ''}`}
             onClick={() => setSortBy('total')}
           >총합 기준</button>
