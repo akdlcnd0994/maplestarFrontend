@@ -454,6 +454,7 @@ function GuildTab() {
 function AdminPanel() {
   const [scraping, setScraping] = useState(false);
   const [scrapingHistory, setScrapingHistory] = useState(false);
+  const [warmingCache, setWarmingCache] = useState(false);
   const [result, setResult] = useState(null);
 
   const handleScrape = async () => {
@@ -482,15 +483,33 @@ function AdminPanel() {
     setScrapingHistory(false);
   };
 
+  const handleWarmCache = async () => {
+    if (!confirm('과거 회차 서버 캐시 워밍을 시작합니다.\n이미 캐싱된 회차는 스킵됩니다.')) return;
+    setWarmingCache(true);
+    setResult(null);
+    try {
+      const res = await api.warmMureungCache();
+      setResult({ success: true, message: res.data?.message || '캐시 워밍 완료' });
+    } catch (e) {
+      setResult({ success: false, message: e.message });
+    }
+    setWarmingCache(false);
+  };
+
+  const isLoading = scraping || scrapingHistory || warmingCache;
+
   return (
     <div className="mureung-admin-panel">
       <h4>관리자</h4>
       <div className="mureung-admin-buttons">
-        <button className="btn-primary" onClick={handleScrape} disabled={scraping || scrapingHistory}>
+        <button className="btn-primary" onClick={handleScrape} disabled={isLoading}>
           {scraping ? '스크래핑 중...' : '현재 회차 스크래핑'}
         </button>
-        <button className="btn-secondary" onClick={handleScrapeAllHistory} disabled={scraping || scrapingHistory}>
+        <button className="btn-secondary" onClick={handleScrapeAllHistory} disabled={isLoading}>
           {scrapingHistory ? '역대 기록 스크래핑 중...' : '역대 기록 전체 스크래핑'}
+        </button>
+        <button className="btn-secondary" onClick={handleWarmCache} disabled={isLoading}>
+          {warmingCache ? '캐시 워밍 중...' : '과거 회차 캐시 워밍'}
         </button>
       </div>
       {result && (

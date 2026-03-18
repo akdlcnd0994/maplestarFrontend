@@ -894,6 +894,10 @@ class ApiClient {
     apiCache.invalidatePrefix('mureung:');
     return res;
   }
+
+  async warmMureungCache() {
+    return this.request('/mureung/warm-cache', { method: 'POST', body: JSON.stringify({}) });
+  }
 }
 
 export const api = new ApiClient();
