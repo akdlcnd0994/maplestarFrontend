@@ -484,12 +484,12 @@ function AdminPanel() {
   };
 
   const handleWarmCache = async () => {
-    if (!confirm('과거 회차 서버 캐시 워밍을 시작합니다.\n이미 캐싱된 회차는 스킵됩니다.')) return;
+    if (!confirm('과거 회차 서버 캐시 워밍을 시작합니다.\n이미 캐싱된 회차는 스킵됩니다.\n\n백그라운드에서 실행되며 즉시 완료됩니다.')) return;
     setWarmingCache(true);
     setResult(null);
     try {
       const res = await api.warmMureungCache();
-      setResult({ success: true, message: res.data?.message || '캐시 워밍 완료' });
+      setResult({ success: true, message: res.data?.message || '캐시 워밍 시작됨 (백그라운드 실행 중)' });
     } catch (e) {
       setResult({ success: false, message: e.message });
     }
