@@ -14321,8 +14321,9 @@ button.point-shop-banner {
 .board-text.rich-content {
   font-size: 14px;
   line-height: 1.7;
-  color: #374151;
+  color: var(--text-medium);
 }
+.rich-content * { background-color: transparent !important; }
 
 .rich-content p { margin: 0.4em 0; }
 .rich-content h2 { font-size: 1.2em; font-weight: 700; margin: 0.8em 0 0.3em; }
