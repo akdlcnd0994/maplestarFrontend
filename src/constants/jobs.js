@@ -58,6 +58,7 @@ export const JOB_LIST = [
   // 기타
   { value: '하야토', label: '하야토' },
   { value: '칸나', label: '칸나' },
+  { value: '아야메', label: '아야메' },
   { value: '제로', label: '제로' },
   { value: '키네시스', label: '키네시스' },
 ];

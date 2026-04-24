@@ -27,6 +27,7 @@ const MUREUNG_JOBS = [
   { group: 4110, name: '하야토' },
   { group: 4210, name: '칸나' },
   { group: 2410, name: '팬텀' },
+  { group: 4910, name: '아야메' },
 ];
 
 // 점수 포맷팅: 억/만 단위 (예: 4,444,945,495 → "44억 4494만")
